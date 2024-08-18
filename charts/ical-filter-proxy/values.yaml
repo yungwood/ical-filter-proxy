@@ -32,7 +32,7 @@ config:
   #         remove: true
   #         match:
   #           summary:
-  #             regex_match: ".*[Pp]ublic [Hh]oliday.*"
+  #             regex: ".*[Pp]ublic [Hh]oliday.*"
   # insecure: false
 
 serviceAccount:
