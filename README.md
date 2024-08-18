@@ -122,7 +122,7 @@ calendars:
         remove: true
         match:
           summary:
-            regex_match: ".*[Pp]ublic [Hh]oliday.*"
+            regex: ".*[Pp]ublic [Hh]oliday.*"
 
   # example: cleaning up an OpsGenie feed
   - name: opsgenie
@@ -160,7 +160,7 @@ Each event parsed from `feed_url` is evaluated against the filters in sequence.
 
 #### Match conditions
 
-Each filter can spcify match conditions against the following event properties:
+Each filter can specify match conditions against the following event properties:
 
 * `summary` (string value)
 * `location` (string value)
@@ -171,7 +171,7 @@ These match conditions are available for a string value:
 * `contains` - property must contain this value
 * `prefix` - property must start with this value
 * `suffix` - property must end with this value
-* `regex_match` - property must match the given regular expression (an invalid regex will result in no matches)
+* `regex` - property must match the given regular expression (an invalid regex will result in no matches)
 
 #### Transformations
 
