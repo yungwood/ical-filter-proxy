@@ -39,7 +39,7 @@ iCal Filter Proxy is a simple service for proxying multiple iCal feeds while app
 
 ### Docker
 
-Docker images are published to [Docker Hub](https://hub.docker.com/repository/docker/yungwood/ical-filter-proxy). You'll need a config file (see below) mounted into the container at `/app/config.yaml`.
+Docker images are published to [Docker Hub](https://hub.docker.com/r/yungwood/ical-filter-proxy). You'll need a config file (see below) mounted into the container at `/app/config.yaml`.
 
 For example:
 
