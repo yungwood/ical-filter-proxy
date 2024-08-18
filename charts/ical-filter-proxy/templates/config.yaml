@@ -1,0 +1,15 @@
+{{- if .Values.config.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ical-filter-proxy.fullname" . }}-config
+  labels:
+    {{- include "ical-filter-proxy.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    {{- if .Values.config.insecure }}
+    insecure: true
+    {{- end }}
+    calendars:
+{{ .Values.config.calendars | toYaml | indent 6 }}
+{{- end }}

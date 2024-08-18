@@ -1,0 +1,19 @@
+---
+include:
+  - project: gitlab/includes  # private gitlab instance
+    file:
+      - docker.yml
+      - go.yml
+      - helm.yml
+variables:
+  CI_DOCKER_BUILD: "true"
+  CI_DOCKER_DHUB_REPO: "yungwood/ical-filter-proxy"
+
+go:build:
+  artifacts:
+    paths:
+      - ical-filter-proxy
+
+docker:build:
+  needs:
+    - go:build
