@@ -1,0 +1,119 @@
+replicaCount: 1
+
+image:
+  repository: yungwood/ical-filter-proxy
+  pullPolicy: IfNotPresent
+  tag: "" # defaults to chart appVersion
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+args: []
+
+config:
+  enabled: false  # enable to generate config from values (example below)
+  # calendars:
+  #   - name: outlook
+  #     token: "changeme"
+  #     feed_url: "https://outlook.office365.com/owa/calendar/.../reachcalendar.ics"
+  #     filters:
+  #       - description: "Remove cancelled events"
+  #         remove: true
+  #         match:
+  #           summary:
+  #             prefix: "Canceled: "
+  #       - description: "Remove optional events"
+  #         remove: true
+  #         match:
+  #           summary:
+  #             prefix: "[Optional]"
+  #       - description: "Remove public holidays"
+  #         remove: true
+  #         match:
+  #           summary:
+  #             regex_match: ".*[Pp]ublic [Hh]oliday.*"
+  # insecure: false
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 3000
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: ical-filter-proxy.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: ical-filter-proxy-tls
+  #    hosts:
+  #      - ical-filter-proxy.local
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /liveness
+    port: http
+readinessProbe:
+  httpGet:
+    path: /readiness
+    port: http
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+volumeMounts: []
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

@@ -1,0 +1,26 @@
+---
+services:
+  ical-filter-proxy:
+    image: yungwood/ical-filter-proxy:latest
+    container_name: ical-filter-proxy
+    # # specify additional command arguments
+    # command: --debug
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.yaml:/app/config.yaml
+    restart: always
+
+## the below example might be used with traefik docker provider
+## https://doc.traefik.io/traefik/providers/docker/
+#     labels:
+#       traefik.enable: true
+#       traefik.http.routers.ical.rule: "Host(`ical.mydomain.com`)"
+#       traefik.http.routers.ical.entrypoints: web
+#       traefik.http.services.ical.loadbalancer.server.port: 8080
+#     networks: 
+#       - traefik
+# networks:
+#   traefik:
+#     name: traefik
+#     external: true
