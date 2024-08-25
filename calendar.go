@@ -16,10 +16,11 @@ import (
 
 // CalendarConfig definition
 type CalendarConfig struct {
-	Name    string   `yaml:"name"`
-	Token   string   `yaml:"token"`
-	FeedURL string   `yaml:"feed_url"`
-	Filters []Filter `yaml:"filters"`
+	Name        string   `yaml:"name"`
+	PublishName string   `yaml:"publish_name"`
+	Token       string   `yaml:"token"`
+	FeedURL     string   `yaml:"feed_url"`
+	Filters     []Filter `yaml:"filters"`
 }
 
 // Downloads iCal feed from the URL and applies filtering rules
@@ -42,6 +43,10 @@ func (calendarConfig CalendarConfig) fetch() ([]byte, error) {
 	cal, err := ics.ParseCalendar(strings.NewReader(string(feedData)))
 	if err != nil {
 		return nil, err
+	}
+
+	if (calendarConfig.PublishName != "") {
+		cal.SetName(calendarConfig.PublishName)
 	}
 
 	// process filters
@@ -153,8 +158,8 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 			return false // event doesn't match
 		}
 	}
-	
-	// Check Description filters against VEvent
+
+	// Check Location filters against VEvent
 	if filter.Match.Location.hasConditions() {
 		eventLocation := event.GetProperty(ics.ComponentPropertyLocation)
 		var eventLocationValue string
@@ -190,6 +195,13 @@ func (filter Filter) transformEvent(event *ics.VEvent) {
 		event.SetDescription("")
 	} else if filter.Transform.Description.Replace != "" {
 		event.SetDescription(filter.Transform.Description.Replace)
+	}
+
+	// Location transformations
+	if filter.Transform.Location.Remove {
+		event.SetLocation("")
+	} else if filter.Transform.Location.Replace != "" {
+		event.SetLocation(filter.Transform.Location.Replace)
 	}
 }
 
