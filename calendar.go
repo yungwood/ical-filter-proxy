@@ -141,11 +141,12 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 	// Check Description filters against VEvent
 	if filter.Match.Description.hasConditions() {
 		eventDescription := event.GetProperty(ics.ComponentPropertyDescription)
+		var eventDescriptionValue string
 		if eventDescription == nil {
 			slog.Debug("Event has no Description, but continuing checking filters", "event_summary", eventSummary.Value, "filter", filter.Description)
-			eventDescriptionValue := ""
+			eventDescriptionValue = ""
 		} else {
-			eventDescriptionValue := eventDescription.Value
+			eventDescriptionValue = eventDescription.Value
 		}
 
 		if !filter.Match.Description.matchesString(eventDescriptionValue) {
@@ -157,11 +158,12 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 	// Check Description filters against VEvent
 	if filter.Match.Location.hasConditions() {
 		eventLocation := event.GetProperty(ics.ComponentPropertyLocation)
+		var eventLocationValue string
 		if eventLocation == nil {
 			slog.Warn("Event has no Location, but continuing checking filters", "event_summary", eventSummary.Value, "filter", filter.Description)
-			eventLocationValue := ""
+			eventLocationValue = ""
 		} else {
-			eventLocationValue := eventLocation.Value
+			eventLocationValue = eventLocation.Value
 		}
 		if !filter.Match.Location.matchesString(eventLocationValue) {
 			slog.Debug("Event Location does not match filter conditions", "event_summary", eventSummary.Value, "filter", filter.Description)
