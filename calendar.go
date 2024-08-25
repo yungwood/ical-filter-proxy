@@ -186,6 +186,13 @@ func (filter Filter) transformEvent(event *ics.VEvent) {
 	} else if filter.Transform.Description.Replace != "" {
 		event.SetDescription(filter.Transform.Description.Replace)
 	}
+
+	// Location transformations
+	if filter.Transform.Location.Remove {
+		event.SetLocation("")
+	} else if filter.Transform.Location.Replace != "" {
+		event.SetLocation(filter.Transform.Location.Replace)
+	}
 }
 
 // EventMatchRules contains VEvent properties that user can match against
