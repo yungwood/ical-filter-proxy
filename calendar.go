@@ -143,7 +143,6 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 		eventDescription := event.GetProperty(ics.ComponentPropertyDescription)
 		var eventDescriptionValue string
 		if eventDescription == nil {
-			slog.Debug("Event has no Description, but continuing checking filters", "event_summary", eventSummary.Value, "filter", filter.Description)
 			eventDescriptionValue = ""
 		} else {
 			eventDescriptionValue = eventDescription.Value
@@ -160,7 +159,6 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 		eventLocation := event.GetProperty(ics.ComponentPropertyLocation)
 		var eventLocationValue string
 		if eventLocation == nil {
-			slog.Warn("Event has no Location, but continuing checking filters", "event_summary", eventSummary.Value, "filter", filter.Description)
 			eventLocationValue = ""
 		} else {
 			eventLocationValue = eventLocation.Value
