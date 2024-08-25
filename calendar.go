@@ -142,10 +142,13 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 	if filter.Match.Description.hasConditions() {
 		eventDescription := event.GetProperty(ics.ComponentPropertyDescription)
 		if eventDescription == nil {
-			slog.Debug("Event has no Description so cannot not match filter", "event_summary", eventSummary.Value, "filter", filter.Description)
-			return false // if VEvent has no description it cannot match filter
+			slog.Debug("Event has no Description, but continuing checking filters", "event_summary", eventSummary.Value, "filter", filter.Description)
+			eventDescriptionValue := ""
+		} else {
+			eventDescriptionValue := eventDescription.Value
 		}
-		if !filter.Match.Description.matchesString(eventDescription.Value) {
+
+		if !filter.Match.Description.matchesString(eventDescriptionValue) {
 			slog.Debug("Event Description does not match filter conditions", "event_summary", eventSummary.Value, "filter", filter.Description)
 			return false // event doesn't match
 		}
@@ -155,10 +158,12 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 	if filter.Match.Location.hasConditions() {
 		eventLocation := event.GetProperty(ics.ComponentPropertyLocation)
 		if eventLocation == nil {
-			slog.Warn("Event has no Location so cannot match filter", "event_summary", eventSummary.Value, "filter", filter.Description)
-			return false // if VEvent has no location it cannot match filter
+			slog.Warn("Event has no Location, but continuing checking filters", "event_summary", eventSummary.Value, "filter", filter.Description)
+			eventLocationValue := ""
+		} else {
+			eventLocationValue := eventLocation.Value
 		}
-		if !filter.Match.Location.matchesString(eventLocation.Value) {
+		if !filter.Match.Location.matchesString(eventLocationValue) {
 			slog.Debug("Event Location does not match filter conditions", "event_summary", eventSummary.Value, "filter", filter.Description)
 			return false // event doesn't match
 
@@ -195,8 +200,13 @@ type EventMatchRules struct {
 	Location    StringMatchRule `yaml:"location"`
 }
 
+type NullMatchRule struct {
+	Null bool `yaml:"empty"`
+}
+
 // StringMatchRule defines match rules for VEvent properties with string values
 type StringMatchRule struct {
+	NullMatchRule
 	Contains   string `yaml:"contains"`
 	Prefix     string `yaml:"prefix"`
 	Suffix     string `yaml:"suffix"`
@@ -213,6 +223,10 @@ func (smr StringMatchRule) hasConditions() bool {
 
 // Returns true if a given string (data) matches ALL StringMatchRule conditions
 func (smr StringMatchRule) matchesString(data string) bool {
+	// check null if set and don't process further - this condition can only be met on its own
+	if smr.Null {
+		return data == ""
+	}
 	// check contains if set
 	if smr.Contains != "" {
 		if data == "" || !strings.Contains(data, smr.Contains) {
