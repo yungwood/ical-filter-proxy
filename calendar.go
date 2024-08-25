@@ -154,7 +154,7 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 			return false // event doesn't match
 		}
 	}
-
+	
 	// Check Description filters against VEvent
 	if filter.Match.Location.hasConditions() {
 		eventLocation := event.GetProperty(ics.ComponentPropertyLocation)
@@ -202,13 +202,9 @@ type EventMatchRules struct {
 	Location    StringMatchRule `yaml:"location"`
 }
 
-type NullMatchRule struct {
-	Null bool `yaml:"empty"`
-}
-
 // StringMatchRule defines match rules for VEvent properties with string values
 type StringMatchRule struct {
-	NullMatchRule
+	Null       bool   `yaml:"empty"`
 	Contains   string `yaml:"contains"`
 	Prefix     string `yaml:"prefix"`
 	Suffix     string `yaml:"suffix"`
@@ -217,7 +213,8 @@ type StringMatchRule struct {
 
 // Returns true if StringMatchRule has any conditions
 func (smr StringMatchRule) hasConditions() bool {
-	return smr.Contains != "" ||
+	return smr.Null ||
+	    smr.Contains != "" ||
 		smr.Prefix != "" ||
 		smr.Suffix != "" ||
 		smr.RegexMatch != ""
