@@ -16,10 +16,11 @@ import (
 
 // CalendarConfig definition
 type CalendarConfig struct {
-	Name    string   `yaml:"name"`
-	Token   string   `yaml:"token"`
-	FeedURL string   `yaml:"feed_url"`
-	Filters []Filter `yaml:"filters"`
+	Name        string   `yaml:"name"`
+	PublishName string   `yaml:"publish_name"`
+	Token       string   `yaml:"token"`
+	FeedURL     string   `yaml:"feed_url"`
+	Filters     []Filter `yaml:"filters"`
 }
 
 // Downloads iCal feed from the URL and applies filtering rules
@@ -42,6 +43,10 @@ func (calendarConfig CalendarConfig) fetch() ([]byte, error) {
 	cal, err := ics.ParseCalendar(strings.NewReader(string(feedData)))
 	if err != nil {
 		return nil, err
+	}
+
+	if (calendarConfig.PublishName != "") {
+		cal.SetName(calendarConfig.PublishName)
 	}
 
 	// process filters
