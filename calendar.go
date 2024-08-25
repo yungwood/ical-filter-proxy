@@ -151,7 +151,7 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 		}
 	}
 
-	// Check Description filters against VEvent
+	// Check Location filters against VEvent
 	if filter.Match.Location.hasConditions() {
 		eventLocation := event.GetProperty(ics.ComponentPropertyLocation)
 		if eventLocation == nil {
