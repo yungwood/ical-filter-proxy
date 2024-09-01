@@ -151,7 +151,7 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 		}
 	}
 
-	// Check Description filters against VEvent
+	// Check Location filters against VEvent
 	if filter.Match.Location.hasConditions() {
 		eventLocation := event.GetProperty(ics.ComponentPropertyLocation)
 		if eventLocation == nil {
@@ -185,6 +185,13 @@ func (filter Filter) transformEvent(event *ics.VEvent) {
 		event.SetDescription("")
 	} else if filter.Transform.Description.Replace != "" {
 		event.SetDescription(filter.Transform.Description.Replace)
+	}
+
+	// Location transformations
+	if filter.Transform.Location.Remove {
+		event.SetLocation("")
+	} else if filter.Transform.Location.Replace != "" {
+		event.SetLocation(filter.Transform.Location.Replace)
 	}
 }
 
