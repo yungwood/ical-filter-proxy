@@ -1,0 +1,407 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+        "affinity": {
+            "properties": {},
+            "type": "object"
+        },
+        "args": {
+            "type": "array"
+        },
+        "config": {
+            "properties": {
+                "additionalProperties": false,
+                "calendars": {
+                    "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                            "feed_url": {
+                                "type": "string"
+                            },
+                            "filters": {
+                                "items": {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "description": {
+                                            "type": "string"
+                                        },
+                                        "match": {
+                                            "additionalProperties": false,
+                                            "properties": {
+                                                "summary": {
+                                                    "additionalProperties": false,
+                                                    "properties": {
+                                                        "prefix": {
+                                                            "type": "string"
+                                                        },
+                                                        "suffix": {
+                                                            "type": "string"
+                                                        },
+                                                        "contains": {
+                                                            "type": "string"
+                                                        },
+                                                        "regex": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "description": {
+                                                    "additionalProperties": false,
+                                                    "properties": {
+                                                        "prefix": {
+                                                            "type": "string"
+                                                        },
+                                                        "suffix": {
+                                                            "type": "string"
+                                                        },
+                                                        "contains": {
+                                                            "type": "string"
+                                                        },
+                                                        "regex": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "location": {
+                                                    "additionalProperties": false,
+                                                    "properties": {
+                                                        "prefix": {
+                                                            "type": "string"
+                                                        },
+                                                        "suffix": {
+                                                            "type": "string"
+                                                        },
+                                                        "contains": {
+                                                            "type": "string"
+                                                        },
+                                                        "regex": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "remove": {
+                                            "type": "boolean"
+                                        },
+                                        "stop": {
+                                            "type": "boolean"
+                                        },
+                                        "transform": {
+                                            "additionalProperties": false,
+                                            "properties": {
+                                                "summary": {
+                                                    "additionalProperties": false,
+                                                    "properties": {
+                                                        "replace": {
+                                                            "type": "string"
+                                                        },
+                                                        "remove": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "description": {
+                                                    "additionalProperties": false,
+                                                    "properties": {
+                                                        "replace": {
+                                                            "type": "string"
+                                                        },
+                                                        "remove": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "location": {
+                                                    "additionalProperties": false,
+                                                    "properties": {
+                                                        "replace": {
+                                                            "type": "string"
+                                                        },
+                                                        "remove": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "token": {
+                                "type": "string"
+                            }
+                        },
+                        "required": ["feed_url", "name"],
+                        "type": "object"
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "insecure": {
+                    "type": "boolean"
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "enabled": { "const": true }
+                        }
+                    },
+                    "then": {
+                        "required": ["calendars"]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "calendars": {
+                                "type": "array",
+                                "items": {
+                                    "not": {
+                                        "required": ["token"]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "insecure": { "const": true }
+                        }
+                    }
+                }
+            ],
+            "type": "object"
+        },
+        "extraResources": {
+            "type": "array",
+            "items": {
+                "type": ["object", "string"]
+            }
+        },
+        "fullnameOverride": {
+            "type": "string"
+        },
+        "image": {
+            "additionalProperties": false,
+            "properties": {
+                "pullPolicy": {
+                    "type": "string",
+                    "enum": ["Always", "IfNotPresent", "Never"]
+                },
+                "repository": {
+                    "type": "string"
+                },
+                "tag": {
+                    "type": "string"
+                }
+            },
+            "required": ["repository", "pullPolicy"],
+            "type": "object"
+        },
+        "imagePullSecrets": {
+            "type": "array"
+        },
+        "ingress": {
+            "properties": {
+                "annotations": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "properties": {},
+                    "type": "object"
+                },
+                "className": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "hosts": {
+                    "items": {
+                        "properties": {
+                            "host": {
+                                "type": "string"
+                            },
+                            "paths": {
+                                "items": {
+                                    "properties": {
+                                        "path": {
+                                            "type": "string"
+                                        },
+                                        "pathType": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "type": "array"
+                },
+                "tls": {
+                    "items": {
+                        "properties": {
+                            "hosts": {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            "secretName": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "livenessProbe": {
+            "properties": {},
+            "type": "object"
+        },
+        "nameOverride": {
+            "type": "string"
+        },
+        "nodeSelector": {
+            "properties": {},
+            "type": "object"
+        },
+        "podAnnotations": {
+            "properties": {},
+            "type": "object"
+        },
+        "podLabels": {
+            "properties": {},
+            "type": "object"
+        },
+        "podSecurityContext": {
+            "properties": {},
+            "type": "object"
+        },
+        "readinessProbe": {
+            "properties": {},
+            "type": "object"
+        },
+        "replicaCount": {
+            "type": "integer"
+        },
+        "resources": {
+            "properties": {
+                "limits": {
+                    "properties": {},
+                    "type": "object"
+                },
+                "requests": {
+                    "properties": {},
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "securityContext": {
+            "properties": {},
+            "type": "object"
+        },
+        "service": {
+            "properties": {
+                "port": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "serviceAccount": {
+            "properties": {
+                "annotations": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "properties": {},
+                    "type": "object"
+                },
+                "automount": {
+                    "type": "boolean"
+                },
+                "create": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "tolerations": {
+            "type": "array"
+        },
+        "volumeMounts": {
+            "items": {
+                "properties": {
+                    "mountPath": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "readOnly": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "type": "array"
+        },
+        "volumes": {
+            "items": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "secret": {
+                        "properties": {
+                            "optional": {
+                                "type": "boolean"
+                            },
+                            "secretName": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "type": "array"
+        }
+    },
+    "required": ["image", "config", "extraResources", "livenessProbe", "readinessProbe", "replicaCount"],
+    "type": "object"
+}

@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,9 +6,8 @@ metadata:
   labels:
     {{- include "ical-filter-proxy.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit | default "3" }}
   selector:
     matchLabels:
       {{- include "ical-filter-proxy.selectorLabels" . | nindent 6 }}
