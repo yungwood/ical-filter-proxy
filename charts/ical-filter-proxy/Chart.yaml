@@ -2,7 +2,7 @@ apiVersion: v2
 name: ical-filter-proxy
 description: iCal proxy with support for user-defined filtering rules
 type: application
-version: 0.1.0
-appVersion: "0.1.0"
+version: 0.1.1
+appVersion: "0.1.1"
 maintainers:
   - name: Yung Wood
