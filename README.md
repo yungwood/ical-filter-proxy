@@ -115,11 +115,11 @@ calendars:
         match:
           summary:
             prefix: "Canceled: "
-      - description: "Remove optional events"
+      - description: "Remove events without descriptions"
         remove: true
         match:
-          summary:
-            prefix: "[Optional]"
+          description:
+            empty: true
       - description: "Remove public holidays"
         remove: true
         match:
@@ -170,6 +170,7 @@ Each filter can specify match conditions against the following event properties:
 
 These match conditions are available for a string value:
 
+* `empty` - if `true`, property must be absent or empty
 * `contains` - property must contain this value
 * `prefix` - property must start with this value
 * `suffix` - property must end with this value
