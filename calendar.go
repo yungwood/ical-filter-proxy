@@ -256,16 +256,17 @@ func (smr StringMatchRule) matchesString(data string) bool {
 	}
 	// check regex match if set
 	if smr.RegexMatch != "" {
-		match, err := regexp.MatchString(data, smr.RegexMatch)
+		re, err := regexp.Compile(smr.RegexMatch)
 		if err != nil {
-			slog.Warn("error processing regex rule", "value", smr.RegexMatch)
-			return false // regex error is considered a failure to match
+				slog.Warn("error processing regex rule", "value", smr.RegexMatch)
+				return false // regex error is considered a failure to match
 		}
+		match := re.MatchString(data)
 		if !match {
-			return false // regex didn't match
+				return false // regex didn't match
 		}
 	}
-	return true
+return true
 }
 
 // EventTransformRules contains VEvent properties that user can modify
