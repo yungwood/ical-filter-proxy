@@ -60,3 +60,15 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Renders a value that contains template perhaps with scope if the scope is present.
+*/}}
+{{- define "tplRender" -}}
+{{- $value := typeIs "string" .value | ternary .value (.value | toYaml) }}
+{{- if contains "{{" $value }}
+    {{- tpl $value .context }}
+{{- else }}
+    {{- $value }}
+{{- end }}
+{{- end -}}
