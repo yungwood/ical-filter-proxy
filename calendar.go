@@ -217,6 +217,7 @@ func (filter Filter) transformEvent(event *ics.VEvent) {
 		event.SetLocation("")
 	} else if filter.Transform.Location.Replace != "" {
 		event.SetLocation(filter.Transform.Location.Replace)
+	}
 	
 	// URL transformations
 	if filter.Transform.Url.Remove {
