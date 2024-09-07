@@ -175,6 +175,21 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 		}
 	}
 
+	// Check Url filters against VEvent
+	if filter.Match.Url.hasConditions() {
+		eventUrl := event.GetProperty(ics.ComponentPropertyUrl)
+		var eventUrlValue string
+		if eventUrl == nil {
+			eventUrlValue = ""
+		} else {
+			eventUrlValue = eventUrl.Value
+		}
+		if !filter.Match.Url.matchesString(eventUrlValue) {
+			slog.Debug("Event URL does not match filter conditions", "event_summary", eventSummary.Value, "filter", filter.Description)
+			return false // event doesn't match
+		}
+	}
+
 	// VEvent must match if we get here
 	slog.Debug("Event matches filter conditions", "event_summary", eventSummary.Value, "filter", filter.Description)
 	return true
@@ -202,6 +217,12 @@ func (filter Filter) transformEvent(event *ics.VEvent) {
 		event.SetLocation("")
 	} else if filter.Transform.Location.Replace != "" {
 		event.SetLocation(filter.Transform.Location.Replace)
+	
+	// URL transformations
+	if filter.Transform.Url.Remove {
+		event.SetUrl("")
+	} else if filter.Transform.Url.Replace != "" {
+		event.SetUrl(filter.Transform.Url.Replace)
 	}
 }
 
@@ -210,6 +231,7 @@ type EventMatchRules struct {
 	Summary     StringMatchRule `yaml:"summary"`
 	Description StringMatchRule `yaml:"description"`
 	Location    StringMatchRule `yaml:"location"`
+	Url    		StringMatchRule `yaml:"url"`
 }
 
 // StringMatchRule defines match rules for VEvent properties with string values
@@ -274,6 +296,7 @@ type EventTransformRules struct {
 	Summary     StringTransformRule `yaml:"summary"`
 	Description StringTransformRule `yaml:"description"`
 	Location    StringTransformRule `yaml:"location"`
+	Url    		StringTransformRule `yaml:"url"`
 }
 
 // StringTransformRule defines changes for VEvent properties with string values
