@@ -1,4 +1,4 @@
-FROM alpine:3.20.2
+FROM alpine:3.20.3
 
 # build args and defaults
 ARG BUILD_DATE="not-set"
