@@ -221,9 +221,9 @@ func (filter Filter) transformEvent(event *ics.VEvent) {
 	
 	// URL transformations
 	if filter.Transform.Url.Remove {
-		event.SetUrl("")
+		event.SetURL("")
 	} else if filter.Transform.Url.Replace != "" {
-		event.SetUrl(filter.Transform.Url.Replace)
+		event.SetURL(filter.Transform.Url.Replace)
 	}
 }
 
