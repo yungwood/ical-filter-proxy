@@ -12,7 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var Version = "development"
+var version = "development"
 
 // this struct used to parse config.yaml
 type Config struct {
@@ -92,7 +92,7 @@ func main() {
 
 	// print version and exit
 	if printVersion {
-		fmt.Println("version:", Version)
+		fmt.Println("version:", version)
 		os.Exit(0)
 	}
 
