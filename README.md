@@ -167,6 +167,7 @@ Each filter can specify match conditions against the following event properties:
 * `summary` (string value)
 * `location` (string value)
 * `description` (string value)
+* `url` (string value)
 
 These match conditions are available for a string value:
 
@@ -183,6 +184,7 @@ Transformations can be applied to the following event properties:
 * `summary` - string value
 * `location` - string value
 * `description` - string value
+* `url` - string value
 
 The following transformations are available for strings:
 
