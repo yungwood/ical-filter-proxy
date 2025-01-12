@@ -1,9 +1,18 @@
 name: golangci-lint
+
 on:
   push:
     branches:
       - "*"
+    paths:
+      - go.mod
+      - go.sum
+      - "*.go"
   pull_request:
+    paths:
+      - go.mod
+      - go.sum
+      - "*.go"
 
 permissions:
   contents: read
