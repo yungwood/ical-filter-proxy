@@ -3,7 +3,7 @@ name: helm-lint-test
 on:
   push:
     branches:
-      - main
+      - "*"
     paths:
       - "charts/**"
   pull_request:
