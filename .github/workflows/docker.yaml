@@ -5,9 +5,27 @@ on:
   push:
     branches:
       - "*"
+    paths-ignore:
+      - ".github/**"
+      - "charts/**"
+      - ".gitignore"
+      - "docker-compose.yaml"
+      - LICENSE
+      - logo.png
+      - README.md
+      - renovate.json
   pull_request:
     branches:
       - "master"
+    paths-ignore:
+      - ".github/**"
+      - "charts/**"
+      - ".gitignore"
+      - "docker-compose.yaml"
+      - LICENSE
+      - logo.png
+      - README.md
+      - renovate.json
 
 jobs:
   docker:
