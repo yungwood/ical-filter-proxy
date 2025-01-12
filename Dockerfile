@@ -23,22 +23,6 @@ RUN go build -ldflags "-X 'main.version=${VERSION}'" -o /usr/bin/ical-filter-pro
 # Stage 2: docker image
 FROM alpine:3.20.2
 
-# build args and defaults
-# ARG BUILD_DATE="not-set"
-# ARG REVISION="unknown"
-# ARG VERSION="dev-build"
-
-# set some labels
-#LABEL org.opencontainers.image.base.name="alpine:3.20.2" \
-# org.opencontainers.image.documentation="https://github.com/yungwood/ical-filter-proxy/tree/main/README.md" \
-# org.opencontainers.image.created="$BUILD_DATE" \
-# org.opencontainers.image.licenses="MIT" \
-# org.opencontainers.image.source="https://github.com/yungwood/ical-filter-proxy" \
-# org.opencontainers.image.revision="$REVISION" \
-# org.opencontainers.image.title="iCal Filter Proxy" \
-# org.opencontainers.image.description="iCal proxy with support for user-defined filtering rules" \
-# org.opencontainers.image.version="$VERSION"
-
 # install dependencies
 RUN apk --no-cache add gcompat=1.1.0-r4
 
