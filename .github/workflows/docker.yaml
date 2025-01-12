@@ -34,7 +34,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Determine Application Version
+      - name: Lint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
+      - name: Determine AppVersion
+        if: github.event_name != 'pull_request'
         id: vars
         run: |
           # Get the short SHA
@@ -50,6 +56,7 @@ jobs:
           echo "VERSION=${version}" >> $GITHUB_ENV
 
       - name: Docker meta
+        if: github.event_name != 'pull_request'
         id: meta
         uses: docker/metadata-action@v5
         with:
