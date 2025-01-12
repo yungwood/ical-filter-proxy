@@ -20,7 +20,7 @@ RUN go build -ldflags "-X 'main.version=${VERSION}'" -o /usr/bin/ical-filter-pro
 
 
 # Stage 2: docker image
-FROM alpine:3.20.2
+FROM alpine:3.21.2
 
 # install dependencies
 RUN apk --no-cache add gcompat=1.1.0-r4
