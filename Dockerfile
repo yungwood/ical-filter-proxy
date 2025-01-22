@@ -1,43 +1,23 @@
-# Stage 1: go build
+# Stage 1: build golang binary
 FROM golang:1.23-alpine as builder
-
-# build args and defaults
 ARG VERSION="unknown"
-
-# set working dir
-WORKDIR /src
-
-# install build tools
-RUN apk --no-cache add build-base=0.5-r3
-
-# download go module deps
-COPY go.mod go.sum ./
-RUN go mod download
-
-# build binary
+WORKDIR /go/src/app
 COPY . .
-RUN go build -ldflags "-X 'main.version=${VERSION}'" -o /usr/bin/ical-filter-proxy .
+RUN CGO_ENABLED=0 go install -ldflags "-extldflags '-static' -X 'main.version=${VERSION}'"
 
+# Stage 2: setup alpine base for building scratch image
+FROM alpine:3.21.2 as base
+RUN adduser -s /bin/true -u 1000 -D -h /app app && \
+  sed -i -r "/^(app|root)/!d" /etc/group /etc/passwd && \
+  sed -i -r 's#^(.*):[^:]*$#\1:/sbin/nologin#' /etc/passwd
 
-# Stage 2: docker image
-FROM alpine:3.21.2
-
-# install dependencies
-RUN apk --no-cache add gcompat=1.1.0-r4
-
-# create a group and user
-RUN addgroup -S icalfilterproxy && adduser -S -G icalfilterproxy icalfilterproxy
-
-# set working dir
+# Stage 3: create final image from scratch
+FROM scratch
 WORKDIR /app
-
-# copy binary
-COPY --from=builder /usr/bin/ical-filter-proxy /usr/bin/ical-filter-proxy
-
-# switch to app user
-USER icalfilterproxy
-
-# expose port, define entrypoint
+COPY --from=base /etc/passwd /etc/group /etc/shadow /etc/
+COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /go/bin/ical-filter-proxy /usr/bin/ical-filter-proxy
+USER app
 EXPOSE 8080/tcp
 ENTRYPOINT ["/usr/bin/ical-filter-proxy"]
 CMD ["-config", "/app/config.yaml"]
