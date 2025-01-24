@@ -19,7 +19,9 @@ type CalendarConfig struct {
 	Name        string   `yaml:"name"`
 	PublishName string   `yaml:"publish_name"`
 	Token       string   `yaml:"token"`
+	TokenFile   string   `yaml:"token_file"`
 	FeedURL     string   `yaml:"feed_url"`
+	FeedURLFile string   `yaml:"feed_url_file"`
 	Filters     []Filter `yaml:"filters"`
 }
 
@@ -45,7 +47,7 @@ func (calendarConfig CalendarConfig) fetch() ([]byte, error) {
 		return nil, err
 	}
 
-	if (calendarConfig.PublishName != "") {
+	if calendarConfig.PublishName != "" {
 		cal.SetName(calendarConfig.PublishName)
 	}
 
@@ -218,7 +220,7 @@ func (filter Filter) transformEvent(event *ics.VEvent) {
 	} else if filter.Transform.Location.Replace != "" {
 		event.SetLocation(filter.Transform.Location.Replace)
 	}
-	
+
 	// URL transformations
 	if filter.Transform.Url.Remove {
 		event.SetURL("")
@@ -232,7 +234,7 @@ type EventMatchRules struct {
 	Summary     StringMatchRule `yaml:"summary"`
 	Description StringMatchRule `yaml:"description"`
 	Location    StringMatchRule `yaml:"location"`
-	Url    		StringMatchRule `yaml:"url"`
+	Url         StringMatchRule `yaml:"url"`
 }
 
 // StringMatchRule defines match rules for VEvent properties with string values
@@ -247,7 +249,7 @@ type StringMatchRule struct {
 // Returns true if StringMatchRule has any conditions
 func (smr StringMatchRule) hasConditions() bool {
 	return smr.Null ||
-	    smr.Contains != "" ||
+		smr.Contains != "" ||
 		smr.Prefix != "" ||
 		smr.Suffix != "" ||
 		smr.RegexMatch != ""
@@ -281,15 +283,15 @@ func (smr StringMatchRule) matchesString(data string) bool {
 	if smr.RegexMatch != "" {
 		re, err := regexp.Compile(smr.RegexMatch)
 		if err != nil {
-				slog.Warn("error processing regex rule", "value", smr.RegexMatch)
-				return false // regex error is considered a failure to match
+			slog.Warn("error processing regex rule", "value", smr.RegexMatch)
+			return false // regex error is considered a failure to match
 		}
 		match := re.MatchString(data)
 		if !match {
-				return false // regex didn't match
+			return false // regex didn't match
 		}
 	}
-return true
+	return true
 }
 
 // EventTransformRules contains VEvent properties that user can modify
@@ -297,7 +299,7 @@ type EventTransformRules struct {
 	Summary     StringTransformRule `yaml:"summary"`
 	Description StringTransformRule `yaml:"description"`
 	Location    StringTransformRule `yaml:"location"`
-	Url    		StringTransformRule `yaml:"url"`
+	Url         StringTransformRule `yaml:"url"`
 }
 
 // StringTransformRule defines changes for VEvent properties with string values
