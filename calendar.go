@@ -18,6 +18,7 @@ import (
 type CalendarConfig struct {
 	Name        string   `yaml:"name"`
 	PublishName string   `yaml:"publish_name"`
+	Public      bool     `yaml:"public"`
 	Token       string   `yaml:"token"`
 	TokenFile   string   `yaml:"token_file"`
 	FeedURL     string   `yaml:"feed_url"`

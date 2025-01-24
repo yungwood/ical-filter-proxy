@@ -16,8 +16,7 @@ var version = "development"
 
 // this struct used to parse config.yaml
 type Config struct {
-	Calendars   []CalendarConfig `yaml:"calendars"`
-	AllowUnsafe bool             `yaml:"unsafe"`
+	Calendars []CalendarConfig `yaml:"calendars"`
 }
 
 // This function loads the configuration file and does some basic validation
@@ -70,13 +69,13 @@ func (config *Config) LoadConfig(file string) bool {
 		}
 
 		// Check to see if auth is disabled (token not set)
-		// If so print a warning message and make sure unsafe is enabled in config
-		if len(calendarConfig.Token) == 0 {
-			slog.Warn("Calendar has no token set. Authentication will be disabled", "calendar", calendarConfig.Name)
-			if !config.AllowUnsafe {
-				slog.Error("Calendar cannot have authentication disabled without unsafe optionenabled in the configuration", "calendar", calendarConfig.Name)
+		// If so print a warning message and make sure public is enabled in config
+		if calendarConfig.Token == "" {
+			if !calendarConfig.Public {
+				slog.Error("Calendar cannot have authentication disabled without public option enabled in the configuration", "calendar", calendarConfig.Name)
 				return false
 			}
+			slog.Warn("Calendar has no token set. Authentication will be disabled", "calendar", calendarConfig.Name)
 		}
 
 		// Print a warning if the calendar has no filters

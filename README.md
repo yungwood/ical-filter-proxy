@@ -84,7 +84,8 @@ calendars:
   # basic example
   - name: example # used as slug in URL - e.g. ical-filter-proxy:8080/calendars/example/feed?token=changeme
     publish_name: "My Calendar" # the published name of the calendar - uses upstream value if this line is skipped
-    token: "changeme" # token used to pull iCal feed - authentication is disabled when blank
+    token: "changeme" # optional - token must be used to pull iCal feed if defined
+    public: false # optional - must be true if token is blank or not defined
     feed_url: "https://my-upstream-calendar.url/feed.ics" # URL for the upstream iCal feed
     filters: # optional - if no filters defined the upstream calendar is proxied as parsed
       - description: "Remove an event based on a regex"
@@ -99,7 +100,6 @@ calendars:
 
   # example: removing noise from an Office 365 calendar
   - name: outlook
-    publish_name: "My Outlook Calendar" # the published name of the calendar - uses upstream value if this line is skipped
     token: "changeme"
     feed_url: "https://outlook.office365.com/owa/calendar/.../reachcalendar.ics"
     filters:
@@ -134,8 +134,6 @@ calendars:
             replace: "On-Call" # replace the event summary (title)
       - description: "Remove all other events"
         remove: true
-
-unsafe: false # optional - must be enabled if any calendars do not have a token
 ```
 
 ### Filters
