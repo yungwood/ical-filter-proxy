@@ -40,13 +40,33 @@ func (config *Config) LoadConfig(file string) bool {
 		return false
 	}
 
-	// validate calendar configs
-	for _, calendarConfig := range config.Calendars {
+	// validate calendar configs and load secrets
+	for i := range config.Calendars {
+
+		// grab pointer so we can mutate values when loading from file
+		calendarConfig := &config.Calendars[i]
+
+		// check if url should be loaded from file
+		if calendarConfig.FeedURLFile != "" {
+			calendarConfig.FeedURL, err = readSecretFile(calendarConfig.FeedURLFile)
+			if err != nil {
+				slog.Error("Unable to read feed_url_file", "calendar", calendarConfig.Name, "feed_url_file", calendarConfig.FeedURLFile)
+				return false
+			}
+		}
 
 		// check if url seems valid
 		if !strings.HasPrefix(calendarConfig.FeedURL, "http://") && !strings.HasPrefix(calendarConfig.FeedURL, "https://") {
 			slog.Debug("Calendar URL must begin with http:// or https://", "calendar", calendarConfig.Name, "feed_url", len(calendarConfig.Filters))
 			return false
+		}
+
+		// check if token should be loaded from file
+		if calendarConfig.TokenFile != "" {
+			calendarConfig.Token, err = readSecretFile(calendarConfig.TokenFile)
+			if err != nil {
+				slog.Error("Unable to read token_file", "calendar", calendarConfig.Name, "token_file", calendarConfig.TokenFile)
+			}
 		}
 
 		// Check to see if auth is disabled (token not set)
@@ -69,6 +89,14 @@ func (config *Config) LoadConfig(file string) bool {
 
 	return true // config is parsed successfully
 
+}
+
+func readSecretFile(filePath string) (string, error) {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(data)), nil
 }
 
 func main() {

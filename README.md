@@ -183,13 +183,25 @@ The following transformations are available for strings:
 - `replace` - the property is replace with this value
 - `remove` - if `true` the property is set to a blank string
 
+### Secrets
+
+You can load `feed_url` and `token` values from files by specifying the `feed_url_file` and `token_file` fields in the calendar configuration. When these fields are set, any values directly provided for `feed_url` or `token` are ignored.
+
+For example:
+
+```yaml
+calendars:
+  - name: example
+    token_file: "/run/secrets/outlook-token"
+    feed_url_file: "/run/secrets/outlook-feed"
+```
+
 ## Roadmap to 1.0
 
 There are a few more features I would like to add before I call the project "stable" and release version 1.0.
 
 - [ ] Time based event conditions
 - [ ] Caching
-- [ ] Support for `ical_url_file` and `token_file` in config (vault secrets)
 - [ ] Prometheus metrics
 - [ ] Testing
 
