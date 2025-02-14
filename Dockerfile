@@ -6,7 +6,7 @@ COPY . .
 RUN CGO_ENABLED=0 go install -ldflags "-extldflags '-static' -X 'main.version=${VERSION}'"
 
 # Stage 2: setup alpine base for building scratch image
-FROM alpine:3.21.2 as base
+FROM alpine:3.21.3 as base
 RUN adduser -s /bin/true -u 1000 -D -h /app app && \
   sed -i -r "/^(app|root)/!d" /etc/group /etc/passwd && \
   sed -i -r 's#^(.*):[^:]*$#\1:/sbin/nologin#' /etc/passwd
