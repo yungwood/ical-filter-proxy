@@ -202,18 +202,47 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 func (filter Filter) transformEvent(event *ics.VEvent) {
 
 	// Summary transformations
+	eventSummary := event.GetProperty(ics.ComponentPropertySummary)
+	var eventSummaryValue string
+	if eventSummary == nil {
+		eventSummaryValue = ""
+	} else {
+		eventSummaryValue = eventSummary.Value
+	}
 	if filter.Transform.Summary.Remove {
 		event.SetSummary("")
-	} else if filter.Transform.Summary.Replace != "" {
+	}
+	if filter.Transform.Summary.Replace != "" {
 		event.SetSummary(filter.Transform.Summary.Replace)
+	}
+	if filter.Transform.Summary.Prefix != "" {
+		event.SetSummary(filter.Transform.Summary.Prefix + eventSummaryValue)
+	}
+	if filter.Transform.Summary.Suffix != "" {
+		event.SetSummary(eventSummaryValue + filter.Transform.Summary.Suffix)
 	}
 
 	// Description transformations
+	eventDescription := event.GetProperty(ics.ComponentPropertyDescription)
+	var eventDescriptionValue string
+	if eventDescription == nil {
+		eventDescriptionValue = ""
+	} else {
+		eventDescriptionValue = eventDescription.Value
+	}
 	if filter.Transform.Description.Remove {
 		event.SetDescription("")
-	} else if filter.Transform.Description.Replace != "" {
+	}
+	if filter.Transform.Description.Replace != "" {
 		event.SetDescription(filter.Transform.Description.Replace)
 	}
+	if filter.Transform.Description.Prefix != "" {
+		event.SetDescription(filter.Transform.Description.Prefix + eventDescriptionValue)
+	}
+	if filter.Transform.Description.Suffix != "" {
+		event.SetDescription(eventDescriptionValue + filter.Transform.Description.Suffix)
+	}
+
 
 	// Location transformations
 	if filter.Transform.Location.Remove {
@@ -307,4 +336,6 @@ type EventTransformRules struct {
 type StringTransformRule struct {
 	Replace string `yaml:"replace"`
 	Remove  bool   `yaml:"remove"`
+	Prefix  string `yaml:"prefix"`
+	Suffix  string `yaml:"suffix"`
 }
