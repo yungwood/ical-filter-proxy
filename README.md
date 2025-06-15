@@ -136,6 +136,12 @@ calendars:
         remove: true
 ```
 
+## Endpoints
+
+The service exposes a simple HTTP API for accessing the proxied calendars.
+The base URL is `http://<host>:<port>/calendars/<calendar_name>/feed`.
+
+
 ### Filters
 
 Calendar events are filtered using a similar concept to email filtering. A list of filters is defined for each calendar in the config.
