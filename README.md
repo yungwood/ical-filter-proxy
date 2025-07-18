@@ -73,6 +73,32 @@ cd ical-filter-proxy
 docker build -t ical-filter-proxy:latest .
 ```
 
+### Nix Flake
+
+If you use Nix, you can build and run the application using the provided flake:
+
+```bash
+# clone this repo
+git clone git@github.com:yungwood/ical-filter-proxy.git
+cd ical-filter-proxy
+
+# build the application
+nix build
+
+# run the application
+nix run . -- --help
+
+# enter development shell with Go toolchain
+nix develop
+```
+
+You can also run it directly from the repository without cloning:
+
+```bash
+# run directly from GitHub
+nix run github:yungwood/ical-filter-proxy -- --help
+```
+
 ## Configuration
 
 Calendars and filters are defined in a yaml config file. By default this is `config.yaml` (use the `-config` switch to change this). The configuration must define at least one calendar for ical-filter-proxy to start.
