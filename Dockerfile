@@ -1,5 +1,5 @@
 # Stage 1: build golang binary
-FROM golang:1.23-alpine as builder
+FROM golang:1.25-alpine as builder
 ARG VERSION="unknown"
 WORKDIR /go/src/app
 COPY . .
