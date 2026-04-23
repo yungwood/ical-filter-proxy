@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -16,36 +17,56 @@ import (
 
 // CalendarConfig definition
 type CalendarConfig struct {
-	Name        string   `yaml:"name"`
-	PublishName string   `yaml:"publish_name"`
-	Public      bool     `yaml:"public"`
-	Token       string   `yaml:"token"`
-	TokenFile   string   `yaml:"token_file"`
-	FeedURL     string   `yaml:"feed_url"`
-	FeedURLFile string   `yaml:"feed_url_file"`
-	Filters     []Filter `yaml:"filters"`
+	Name         string   `yaml:"name"`
+	PublishName  string   `yaml:"publish_name"`
+	Public       bool     `yaml:"public"`
+	Token        string   `yaml:"token"`
+	TokenFile    string   `yaml:"token_file"`
+	FeedURL      string   `yaml:"feed_url"`
+	FeedURLFile  string   `yaml:"feed_url_file"`
+	FeedURLs     []string `yaml:"feed_urls"`
+	FeedURLFiles []string `yaml:"feed_url_files"`
+	Filters      []Filter `yaml:"filters"`
 }
 
 // Downloads iCal feed from the URL and applies filtering rules
 func (calendarConfig CalendarConfig) fetch() ([]byte, error) {
+	var cal *ics.Calendar
 
-	// get the iCal feed
-	slog.Debug("Fetching iCal feed", "url", calendarConfig.FeedURL)
-	resp, err := http.Get(calendarConfig.FeedURL)
-	if err != nil {
-		return nil, err
+	// Load upstream feeds, use calendar settings of first feed as base if multiple feeds are defined (it was easiest)
+	for i, feedURL := range calendarConfig.FeedURLs {
+		slog.Debug("Fetching iCal feed", "url", feedURL)
+		resp, err := http.Get(feedURL)
+		if err != nil {
+			return nil, err
+		}
+
+		feedData, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return nil, fmt.Errorf("upstream returned HTTP %d for %s", resp.StatusCode, feedURL)
+		}
+
+		upstreamCal, err := ics.ParseCalendar(strings.NewReader(string(feedData)))
+		if err != nil {
+			return nil, err
+		}
+
+		if i == 0 {
+			cal = upstreamCal
+			continue
+		}
+		for _, event := range upstreamCal.Events() {
+			cal.AddVEvent(event)
+		}
 	}
-	defer resp.Body.Close()
 
-	feedData, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	// parse calendar
-	cal, err := ics.ParseCalendar(strings.NewReader(string(feedData)))
-	if err != nil {
-		return nil, err
+	if cal == nil {
+		return nil, fmt.Errorf("no upstream feeds configured")
 	}
 
 	if calendarConfig.PublishName != "" {
@@ -67,7 +88,7 @@ func (calendarConfig CalendarConfig) fetch() ([]byte, error) {
 
 	// serialize output
 	var buf bytes.Buffer
-	err = cal.SerializeTo(&buf)
+	err := cal.SerializeTo(&buf)
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +263,6 @@ func (filter Filter) transformEvent(event *ics.VEvent) {
 	if filter.Transform.Description.Suffix != "" {
 		event.SetDescription(eventDescriptionValue + filter.Transform.Description.Suffix)
 	}
-
 
 	// Location transformations
 	if filter.Transform.Location.Remove {

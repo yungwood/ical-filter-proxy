@@ -74,12 +74,22 @@ in {
                 feed_url = mkOption {
                   type = types.nullOr types.str;
                   default = null;
-                  description = "URL of the upstream iCal feed.";
+                  description = "URL of the upstream iCal feed (legacy singular option).";
                 };
                 feed_url_file = mkOption {
                   type = types.nullOr types.path;
                   default = null;
-                  description = "Path to file containing the feed URL.";
+                  description = "Path to file containing the feed URL (legacy singular option).";
+                };
+                feed_urls = mkOption {
+                  type = types.listOf types.str;
+                  default = [];
+                  description = "List of upstream iCal feed URLs to merge into one published calendar.";
+                };
+                feed_url_files = mkOption {
+                  type = types.listOf types.path;
+                  default = [];
+                  description = "List of files containing upstream feed URLs.";
                 };
                 filters = mkOption {
                   type = types.listOf (types.submodule {
@@ -335,7 +345,10 @@ in {
           {
             name = "example";
             token = "secure-token";
-            feed_url = "https://calendar.example.com/feed.ics";
+            feed_urls = [
+              "https://calendar.example.com/feed.ics"
+              "https://calendar2.example.com/feed.ics"
+            ];
             filters = [
               {
                 description = "Remove canceled events";

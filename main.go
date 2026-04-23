@@ -45,19 +45,48 @@ func (config *Config) LoadConfig(file string) bool {
 		// grab pointer so we can mutate values when loading from file
 		calendarConfig := &config.Calendars[i]
 
-		// check if url should be loaded from file
-		if calendarConfig.FeedURLFile != "" {
-			calendarConfig.FeedURL, err = readSecretFile(calendarConfig.FeedURLFile)
-			if err != nil {
-				slog.Error("Unable to read feed_url_file", "calendar", calendarConfig.Name, "feed_url_file", calendarConfig.FeedURLFile)
-				return false
+		// Backward compatibility for singular url fields.
+		if len(calendarConfig.FeedURLs) == 0 && calendarConfig.FeedURL != "" {
+			calendarConfig.FeedURLs = []string{calendarConfig.FeedURL}
+		}
+		if len(calendarConfig.FeedURLFiles) == 0 && calendarConfig.FeedURLFile != "" {
+			calendarConfig.FeedURLFiles = []string{calendarConfig.FeedURLFile}
+		}
+
+		// If urls are defined in files, ignore explicit urls and load from files
+		if len(calendarConfig.FeedURLFiles) > 0 {
+			calendarConfig.FeedURLs = []string{}
+			for _, file := range calendarConfig.FeedURLFiles {
+				urls, readErr := readSecretFile(file)
+				if readErr != nil {
+					slog.Error("Unable to read feed_url_file(s) entry", "calendar", calendarConfig.Name, "file", file)
+					return false
+				}
+
+				lines := strings.Split(strings.ReplaceAll(urls, "\r\n", "\n"), "\n")
+				for _, line := range lines {
+					url := strings.TrimSpace(line)
+					if url != "" {
+						calendarConfig.FeedURLs = append(calendarConfig.FeedURLs, url)
+					}
+				}
 			}
 		}
 
-		// check if url seems valid
-		if !strings.HasPrefix(calendarConfig.FeedURL, "http://") && !strings.HasPrefix(calendarConfig.FeedURL, "https://") {
-			slog.Debug("Calendar URL must begin with http:// or https://", "calendar", calendarConfig.Name, "feed_url", len(calendarConfig.Filters))
-			return false
+		// Check if urls are valid, remove invalid ones
+		validFeedURLs := make([]string, 0, len(calendarConfig.FeedURLs))
+		for _, feedURL := range calendarConfig.FeedURLs {
+			if !strings.HasPrefix(feedURL, "http://") && !strings.HasPrefix(feedURL, "https://") {
+				slog.Warn("Calendar URL must begin with http:// or https://", "calendar", calendarConfig.Name, "feed_url", feedURL)
+				continue
+			}
+			validFeedURLs = append(validFeedURLs, feedURL)
+		}
+		calendarConfig.FeedURLs = validFeedURLs
+
+		// Check if any urls are defined
+		if len(calendarConfig.FeedURLs) == 0 {
+			slog.Warn("Calendar has no valid upstream feed URLs defined", "calendar", calendarConfig.Name)
 		}
 
 		// check if token should be loaded from file

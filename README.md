@@ -107,7 +107,9 @@ calendars:
     publish_name: "My Calendar" # the published name of the calendar - uses upstream value if this line is skipped
     token: "changeme" # optional - token must be used to pull iCal feed if defined
     public: false # optional - must be true if token is blank or not defined
-    feed_url: "https://my-upstream-calendar.url/feed.ics" # URL for the upstream iCal feed
+    feed_urls: # one or more upstream iCal feeds to merge
+      - "https://my-upstream-calendar.url/feed.ics"
+      - "https://my-other-calendar.url/feed.ics"
     filters: # optional - if no filters defined the upstream calendar is proxied as parsed
       - description: "Remove an event based on a regex"
         remove: true # events matching this filter will be removed
@@ -122,7 +124,8 @@ calendars:
   # example: removing noise from an Office 365 calendar
   - name: outlook
     token: "changeme"
-    feed_url: "https://outlook.office365.com/owa/calendar/.../reachcalendar.ics"
+    feed_urls:
+      - "https://outlook.office365.com/owa/calendar/.../reachcalendar.ics"
     filters:
       - description: "Remove canceled events" # canceled events remain with a 'Canceled:' prefix until removed
         remove: true
@@ -143,7 +146,8 @@ calendars:
   # example: cleaning up an OpsGenie feed
   - name: opsgenie
     token: "changeme"
-    feed_url: "https://company.app.opsgenie.com/webapi/webcal/getRecentSchedule?webcalToken=..."
+    feed_urls:
+      - "https://company.app.opsgenie.com/webapi/webcal/getRecentSchedule?webcalToken=..."
     filters:
       - description: "Keep oncall schedule events and fix names"
         match:
@@ -167,7 +171,7 @@ The base URL is `http://<host>:<port>/calendars/<calendar_name>/feed`.
 
 Calendar events are filtered using a similar concept to email filtering. A list of filters is defined for each calendar in the config.
 
-Each event parsed from `feed_url` is evaluated against the filters in sequence.
+Each event parsed from `feed_urls` is evaluated against the filters in sequence.
 
 - All `match` rules for a filter must be true to match an event
 - A filter with no `match` rules will _always_ match
@@ -210,7 +214,11 @@ The following transformations are available for strings:
 
 ### Secrets
 
-You can load `feed_url` and `token` values from files by specifying the `feed_url_file` and `token_file` fields in the calendar configuration. When these fields are set, any values directly provided for `feed_url` or `token` are ignored.
+You can load `feed_urls` and `token` values from files by specifying `feed_url_files` and `token_file` in the calendar configuration.
+
+`feed_url_files` accepts a list of file paths. Each file may contain one URL per line, empty lines are ignored. When `feed_url_files` is set, URLs are loaded from those files and explicitly given urls are ignored.
+
+For backwards compatibility, `feed_url` and `feed_url_file` still work as singular forms.
 
 For example:
 
@@ -218,7 +226,9 @@ For example:
 calendars:
   - name: example
     token_file: "/run/secrets/outlook-token"
-    feed_url_file: "/run/secrets/outlook-feed"
+    feed_url_files:
+      - "/run/secrets/outlook-feed-1"
+      - "/run/secrets/outlook-feed-2"
 ```
 
 ## Roadmap to 1.0
