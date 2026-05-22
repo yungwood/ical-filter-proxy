@@ -81,7 +81,7 @@ func (config *Config) LoadConfig(file string) bool {
 		// Print a warning if the calendar has no filters
 		if len(calendarConfig.Filters) == 0 {
 			slog.Warn("Calendar has no filters and will be proxy-only", "calendar", calendarConfig.Name)
-			break
+			continue
 		}
 
 	}
