@@ -175,10 +175,10 @@ func main() {
 			}
 
 			// fetch and filter upstream calendar
-			feed, err := calendarConfig.fetch()
+			feed, err := calendarConfig.fetch(r.Context())
 			if err != nil {
 				slog.Error("Error fetching and filtering feed", "error", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				http.Error(w, "Bad Gateway", http.StatusBadGateway)
 				return
 			}
 
