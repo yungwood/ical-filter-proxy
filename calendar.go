@@ -2,14 +2,23 @@ package main
 
 import (
 	"bytes"
+	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	ics "github.com/arran4/golang-ical"
 )
+
+const maxCalendarBytes = 10 << 20
+
+var upstreamHTTPClient = &http.Client{
+	Timeout: 15 * time.Second,
+}
 
 // All structs defined in this file are used to unmarshall yaml configuration and
 // provide helper functions that are used to fetch and filter events
@@ -27,19 +36,33 @@ type CalendarConfig struct {
 }
 
 // Downloads iCal feed from the URL and applies filtering rules
-func (calendarConfig CalendarConfig) fetch() ([]byte, error) {
+func (calendarConfig CalendarConfig) fetch(ctx context.Context) ([]byte, error) {
 
 	// get the iCal feed
 	slog.Debug("Fetching iCal feed", "url", calendarConfig.FeedURL)
-	resp, err := http.Get(calendarConfig.FeedURL)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, calendarConfig.FeedURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", "ical-filter-proxy/"+version)
+	req.Header.Set("Accept", "text/calendar, text/plain;q=0.8, */*;q=0.1")
+
+	resp, err := upstreamHTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	feedData, err := io.ReadAll(resp.Body)
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("upstream returned %s", resp.Status)
+	}
+
+	feedData, err := io.ReadAll(io.LimitReader(resp.Body, maxCalendarBytes+1))
 	if err != nil {
 		return nil, err
+	}
+	if len(feedData) > maxCalendarBytes {
+		return nil, fmt.Errorf("upstream calendar exceeds %d bytes", maxCalendarBytes)
 	}
 
 	// parse calendar
@@ -242,7 +265,6 @@ func (filter Filter) transformEvent(event *ics.VEvent) {
 	if filter.Transform.Description.Suffix != "" {
 		event.SetDescription(eventDescriptionValue + filter.Transform.Description.Suffix)
 	}
-
 
 	// Location transformations
 	if filter.Transform.Location.Remove {
