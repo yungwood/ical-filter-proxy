@@ -58,7 +58,7 @@ jobs:
       - name: Docker meta
         if: github.event_name != 'pull_request'
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: yungwood/ical-filter-proxy
           tags: |
