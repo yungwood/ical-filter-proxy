@@ -66,9 +66,9 @@ func TestBuildHTTPServersSeparatesManagementRoutes(t *testing.T) {
 	assertHandlerStatus(t, servers[1].server.Handler, "/calendars/private/feed", http.StatusNotFound)
 }
 
-func testServerConfig() Config {
-	return Config{
-		Calendars: []CalendarConfig{
+func testServerConfig() RuntimeConfig {
+	return RuntimeConfig{
+		Calendars: []Calendar{
 			{
 				Name:  "private",
 				Token: "secret",

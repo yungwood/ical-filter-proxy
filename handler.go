@@ -15,7 +15,7 @@ const (
 
 type calendarFetchFunc func(context.Context) ([]byte, error)
 
-func calendarFeedHandlerWithFetch(calendarConfig CalendarConfig, fetch calendarFetchFunc) http.HandlerFunc {
+func calendarFeedHandlerWithFetch(calendar Calendar, fetch calendarFetchFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		setCommonResponseHeaders(w)
 
@@ -25,7 +25,7 @@ func calendarFeedHandlerWithFetch(calendarConfig CalendarConfig, fetch calendarF
 			return
 		}
 
-		if !calendarConfig.Public && !tokenMatches(r.URL.Query().Get("token"), calendarConfig.Token) {
+		if !calendar.Public && !tokenMatches(r.URL.Query().Get("token"), calendar.Token) {
 			slog.Warn("Unauthorized access attempt", "client_ip", r.RemoteAddr)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return

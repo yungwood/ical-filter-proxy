@@ -10,14 +10,14 @@ import (
 	ics "github.com/arran4/golang-ical"
 )
 
-func TestCalendarConfigFetch(t *testing.T) {
+func TestCalendarFetch(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/calendar")
 		_, _ = w.Write([]byte(testCalendarFeed))
 	}))
 	defer server.Close()
 
-	config := CalendarConfig{
+	config := Calendar{
 		Name:        "test",
 		PublishName: "Filtered Calendar",
 		FeedURL:     server.URL,
@@ -80,17 +80,17 @@ func TestCalendarConfigFetch(t *testing.T) {
 	}
 }
 
-func TestCalendarConfigProcessEvent(t *testing.T) {
+func TestCalendarProcessEvent(t *testing.T) {
 	tests := []struct {
 		name        string
-		config      CalendarConfig
+		config      Calendar
 		event       *ics.VEvent
 		wantKeep    bool
 		wantSummary string
 	}{
 		{
 			name: "keeps event by default when no filters match",
-			config: CalendarConfig{
+			config: Calendar{
 				Filters: []Filter{
 					{
 						Description: "Remove canceled events",
@@ -107,7 +107,7 @@ func TestCalendarConfigProcessEvent(t *testing.T) {
 		},
 		{
 			name: "removes event when remove filter matches",
-			config: CalendarConfig{
+			config: Calendar{
 				Filters: []Filter{
 					{
 						Description: "Remove canceled events",
@@ -124,7 +124,7 @@ func TestCalendarConfigProcessEvent(t *testing.T) {
 		},
 		{
 			name: "transforms matching event and keeps it",
-			config: CalendarConfig{
+			config: Calendar{
 				Filters: []Filter{
 					{
 						Description: "Rename on-call events",
@@ -143,7 +143,7 @@ func TestCalendarConfigProcessEvent(t *testing.T) {
 		},
 		{
 			name: "stop prevents later matching filters",
-			config: CalendarConfig{
+			config: Calendar{
 				Filters: []Filter{
 					{
 						Description: "Rename and stop",
@@ -164,7 +164,7 @@ func TestCalendarConfigProcessEvent(t *testing.T) {
 		},
 		{
 			name: "transform continues to later filters when stop is false",
-			config: CalendarConfig{
+			config: Calendar{
 				Filters: []Filter{
 					{
 						Description: "Rename without stop",
@@ -187,7 +187,7 @@ func TestCalendarConfigProcessEvent(t *testing.T) {
 		},
 		{
 			name: "filter without match rules matches all events",
-			config: CalendarConfig{
+			config: Calendar{
 				Filters: []Filter{
 					{
 						Description: "Remove everything",
@@ -201,7 +201,7 @@ func TestCalendarConfigProcessEvent(t *testing.T) {
 		},
 		{
 			name: "drops event without summary",
-			config: CalendarConfig{
+			config: Calendar{
 				Filters: []Filter{},
 			},
 			event:       ics.NewEvent("missing-summary"),
