@@ -1,0 +1,90 @@
+name: publish helm chart
+
+on:
+  push:
+    tags:
+      - "**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish-helm-chart:
+    name: publish helm chart
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          path: source
+
+      - name: Checkout chart repository
+        uses: actions/checkout@v7
+        with:
+          repository: yungwood/helm-charts
+          token: ${{ secrets.HELM_CHARTS_TOKEN }}
+          path: helm-charts
+
+      - name: Copy chart
+        run: |
+          chart_path="helm-charts/charts/ical-filter-proxy"
+
+          mkdir -p "$chart_path"
+          rsync -a --delete source/chart/ "$chart_path/"
+
+          sed -i -E "/^#/d" "${chart_path}/Chart.yaml"
+
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            sed -i -E "s/^version:.*/version: ${GITHUB_REF_NAME}/" "${chart_path}/Chart.yaml"
+            sed -i -E "s/^appVersion:.*/appVersion: \"${GITHUB_REF_NAME}\"/" "${chart_path}/Chart.yaml"
+          fi
+        shell: bash
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint chart
+        run: helm lint charts/ical-filter-proxy
+        working-directory: helm-charts
+
+      - name: Prepare pull request metadata
+        id: pr-metadata
+        run: |
+          source_ref_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/tree/${GITHUB_REF_NAME}"
+          release_line=""
+
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            release_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}"
+            release_line="- Release: [${GITHUB_REF_NAME}](${release_url})"
+          fi
+
+          {
+            echo "body<<EOF"
+            echo "Publishes the \`ical-filter-proxy\` Helm chart source into \`charts/ical-filter-proxy\`."
+            echo
+            echo "- Source ref: [${GITHUB_REF_NAME}](${source_ref_url})"
+            echo "- Source commit: [${GITHUB_SHA}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA})"
+            if [[ -n "${release_line}" ]]; then
+              echo "${release_line}"
+            fi
+            echo
+            echo "The chart source is synchronized from \`yungwood/ical-filter-proxy\` and stale chart files are removed during publishing."
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          path: helm-charts
+          token: ${{ secrets.HELM_CHARTS_TOKEN }}
+          branch: update/ical-filter-proxy-${{ github.ref_name }}
+          delete-branch: true
+          commit-message: Update ical-filter-proxy chart to ${{ github.ref_name }}
+          title: Update ical-filter-proxy chart to ${{ github.ref_name }}
+          body: ${{ steps.pr-metadata.outputs.body }}
