@@ -75,21 +75,9 @@ func main() {
 		os.Exit(0)
 	}
 
-	// iterate through calendars in the config and setup a handler for each
-	// todo: consider refactor to route requests dynamically?
 	mux := http.NewServeMux()
-	for _, calendarConfig := range config.Calendars {
-
-		// configure HTTP endpoint
-		httpPath := "/calendars/" + calendarConfig.Name + "/feed"
-		slog.Debug("Configuring endpoint", "calendar", calendarConfig.Name, "http_path", httpPath)
-		mux.HandleFunc(httpPath, calendarFeedHandler(calendarConfig))
-
-	}
-
-	// add a readiness and liveness check endpoint (return blank 200 OK response)
-	mux.HandleFunc("/liveness", func(_ http.ResponseWriter, _ *http.Request) {})
-	mux.HandleFunc("/readiness", func(_ http.ResponseWriter, _ *http.Request) {})
+	registerPublicRoutes(mux, config)
+	registerInternalRoutes(mux)
 
 	server := &http.Server{
 		Addr:              ":" + strconv.Itoa(listenPort),
