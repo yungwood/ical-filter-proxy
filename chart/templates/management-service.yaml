@@ -6,6 +6,7 @@ metadata:
   name: {{ include "ical-filter-proxy.fullname" . }}-management
   labels:
     {{- include "ical-filter-proxy.labels" . | nindent 4 }}
+    app.kubernetes.io/component: management
 spec:
   type: {{ .Values.management.service.type }}
   ports:

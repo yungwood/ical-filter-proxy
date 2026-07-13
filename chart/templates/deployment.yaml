@@ -43,6 +43,12 @@ spec:
             - -management-address
             - {{ .Values.management.address | default (printf ":%v" (.Values.management.service.port | int)) | quote }}
           {{- end }}
+          {{- if .Values.metrics.enabled }}
+            - -metrics
+          {{- end }}
+          {{- if .Values.metrics.calendarLabels }}
+            - -metrics-calendar-labels
+          {{- end }}
           {{- with .Values.args }}
             {{- toYaml . | nindent 12  }}
           {{- end }}
