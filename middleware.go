@@ -43,15 +43,19 @@ func requestLoggingMiddleware(next http.Handler) http.Handler {
 			statusCode = http.StatusOK
 		}
 
-		slog.Info(
-			"http request processed",
+		logArgs := []any{
 			"method", r.Method,
 			"path", r.URL.Path,
 			"status", statusCode,
 			"duration_ms", time.Since(startedAt).Milliseconds(),
 			"client_addr", r.RemoteAddr,
 			"user_agent", r.UserAgent(),
-		)
+		}
+		if calendarName, ok := calendarNameFromPath(r.URL.Path); ok {
+			logArgs = append(logArgs, "calendar", calendarName)
+		}
+
+		slog.Info("http request processed", logArgs...)
 	})
 }
 

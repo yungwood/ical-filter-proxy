@@ -71,6 +71,9 @@ func TestRequestLoggingMiddlewareLogsPathWithoutQuery(t *testing.T) {
 	if !strings.Contains(got, "status=202") {
 		t.Fatalf("log output = %q, want status", got)
 	}
+	if !strings.Contains(got, "calendar=private") {
+		t.Fatalf("log output = %q, want calendar name", got)
+	}
 }
 
 func TestRequestLoggingMiddlewareSkipsHealthEndpoints(t *testing.T) {
@@ -134,8 +137,12 @@ func TestRequestLoggingMiddlewareLogsNonHealthEndpoint(t *testing.T) {
 
 	handler.ServeHTTP(httptest.NewRecorder(), req)
 
-	if got := logOutput.String(); !strings.Contains(got, "path=/liveness/extra") {
+	got := logOutput.String()
+	if !strings.Contains(got, "path=/liveness/extra") {
 		t.Fatalf("log output = %q, want non-health endpoint to be logged", got)
+	}
+	if strings.Contains(got, "calendar=") {
+		t.Fatalf("log output = %q, did not want calendar attribute", got)
 	}
 }
 
