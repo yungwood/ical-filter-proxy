@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"net/http"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -86,7 +85,8 @@ func newPrometheusMetrics(calendarMetricsEnabled bool) *prometheusMetrics {
 		),
 	}
 
-	metrics.buildInfo.WithLabelValues(version, revision, runtime.Version()).Set(1)
+	build := currentBuildInfo()
+	metrics.buildInfo.WithLabelValues(build.Version, build.Revision, build.GoVersion).Set(1)
 
 	collectors := []prometheus.Collector{
 		metrics.buildInfo,

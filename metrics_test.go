@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"runtime"
 	"strings"
 	"testing"
 )
@@ -57,7 +56,8 @@ func TestMetricsExposeBuildInfo(t *testing.T) {
 	metrics := newPrometheusMetrics(false)
 
 	got := scrapeMetrics(t, metrics)
-	want := `ical_filter_proxy_build_info{goversion="` + runtime.Version() + `",revision="` + revision + `",version="` + version + `"} 1`
+	build := currentBuildInfo()
+	want := `ical_filter_proxy_build_info{goversion="` + build.GoVersion + `",revision="` + build.Revision + `",version="` + build.Version + `"} 1`
 	if !strings.Contains(got, want) {
 		t.Fatalf("metrics output = %q, want build info sample %q", got, want)
 	}

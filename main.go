@@ -14,11 +14,6 @@ import (
 	"time"
 )
 
-var (
-	version  = "development"
-	revision = "unknown"
-)
-
 const gracefulShutdownTimeout = 10 * time.Second
 
 func main() {
@@ -46,7 +41,10 @@ func main() {
 
 	// print version and exit
 	if printVersion {
-		fmt.Println("version:", version)
+		build := currentBuildInfo()
+		fmt.Println("version:", build.Version)
+		fmt.Println("revision:", build.Revision)
+		fmt.Println("go version:", build.GoVersion)
 		os.Exit(0)
 	}
 
