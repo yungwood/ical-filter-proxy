@@ -12,7 +12,7 @@
     flake-utils,
   }: let
     # NixOS module that works across all systems
-    nixosModule = import ./service.nix;
+    nixosModule = args: import ./service.nix (args // {inherit self;});
 
     # Overlay to make ical-filter-proxy available in nixpkgs
     overlay = final: prev: {
