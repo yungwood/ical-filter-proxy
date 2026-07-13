@@ -36,14 +36,7 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 
 	// Check Description filters against VEvent
 	if filter.Match.Description.hasConditions() {
-		eventDescription := event.GetProperty(ics.ComponentPropertyDescription)
-		var eventDescriptionValue string
-		if eventDescription == nil {
-			eventDescriptionValue = ""
-		} else {
-			eventDescriptionValue = eventDescription.Value
-		}
-
+		eventDescriptionValue := eventStringProperty(event, ics.ComponentPropertyDescription)
 		if !filter.Match.Description.matchesString(eventDescriptionValue) {
 			slog.Debug("Event Description does not match filter conditions", "event_summary", eventSummary.Value, "filter", filter.Description)
 			return false // event doesn't match
@@ -52,13 +45,7 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 
 	// Check Location filters against VEvent
 	if filter.Match.Location.hasConditions() {
-		eventLocation := event.GetProperty(ics.ComponentPropertyLocation)
-		var eventLocationValue string
-		if eventLocation == nil {
-			eventLocationValue = ""
-		} else {
-			eventLocationValue = eventLocation.Value
-		}
+		eventLocationValue := eventStringProperty(event, ics.ComponentPropertyLocation)
 		if !filter.Match.Location.matchesString(eventLocationValue) {
 			slog.Debug("Event Location does not match filter conditions", "event_summary", eventSummary.Value, "filter", filter.Description)
 			return false // event doesn't match
@@ -68,13 +55,7 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 
 	// Check URL filters against VEvent
 	if filter.Match.URL.hasConditions() {
-		eventURL := event.GetProperty(ics.ComponentPropertyUrl)
-		var eventURLValue string
-		if eventURL == nil {
-			eventURLValue = ""
-		} else {
-			eventURLValue = eventURL.Value
-		}
+		eventURLValue := eventStringProperty(event, ics.ComponentPropertyUrl)
 		if !filter.Match.URL.matchesString(eventURLValue) {
 			slog.Debug("Event URL does not match filter conditions", "event_summary", eventSummary.Value, "filter", filter.Description)
 			return false // event doesn't match
@@ -90,13 +71,7 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 func (filter Filter) transformEvent(event *ics.VEvent) {
 
 	// Summary transformations
-	eventSummary := event.GetProperty(ics.ComponentPropertySummary)
-	var eventSummaryValue string
-	if eventSummary == nil {
-		eventSummaryValue = ""
-	} else {
-		eventSummaryValue = eventSummary.Value
-	}
+	eventSummaryValue := eventStringProperty(*event, ics.ComponentPropertySummary)
 	if filter.Transform.Summary.Remove {
 		event.SetSummary("")
 	}
@@ -111,13 +86,7 @@ func (filter Filter) transformEvent(event *ics.VEvent) {
 	}
 
 	// Description transformations
-	eventDescription := event.GetProperty(ics.ComponentPropertyDescription)
-	var eventDescriptionValue string
-	if eventDescription == nil {
-		eventDescriptionValue = ""
-	} else {
-		eventDescriptionValue = eventDescription.Value
-	}
+	eventDescriptionValue := eventStringProperty(*event, ics.ComponentPropertyDescription)
 	if filter.Transform.Description.Remove {
 		event.SetDescription("")
 	}
@@ -160,4 +129,13 @@ type EventTransformRules struct {
 	Description StringTransformRule `yaml:"description"`
 	Location    StringTransformRule `yaml:"location"`
 	URL         StringTransformRule `yaml:"url"`
+}
+
+func eventStringProperty(event ics.VEvent, property ics.ComponentProperty) string {
+	eventProperty := event.GetProperty(property)
+	if eventProperty == nil {
+		return ""
+	}
+
+	return eventProperty.Value
 }
