@@ -34,10 +34,17 @@ in {
       description = "Group under which ical-filter-proxy runs.";
     };
 
+    address = mkOption {
+      type = types.str;
+      default = ":8080";
+      example = "127.0.0.1:8080";
+      description = "Address on which the public calendar API listener listens.";
+    };
+
     port = mkOption {
       type = types.port;
       default = 8080;
-      description = "Port on which the service listens.";
+      description = "Port to open when openFirewall is enabled.";
     };
 
     managementAddress = mkOption {
@@ -477,8 +484,8 @@ in {
               "${cfg.package}/bin/ical-filter-proxy"
               "-config"
               "${configFile}"
-              "-port"
-              "${toString cfg.port}"
+              "-address"
+              cfg.address
             ]
             ++ optionals (cfg.managementAddress != null) [
               "-management-address"

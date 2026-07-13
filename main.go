@@ -14,7 +14,7 @@ func main() {
 		configFile             string
 		debugLogging           bool
 		jsonLogging            bool
-		listenPort             int
+		address                string
 		validateConfig         bool
 		printVersion           bool
 		metricsEnabled         bool
@@ -25,7 +25,7 @@ func main() {
 	flag.BoolVar(&debugLogging, "debug", false, "enable debug logging")
 	flag.BoolVar(&printVersion, "version", false, "print version and exit")
 	flag.BoolVar(&jsonLogging, "json", false, "output logging in JSON format")
-	flag.IntVar(&listenPort, "port", 8080, "listening port for api")
+	flag.StringVar(&address, "address", ":8080", "address for calendar API listener")
 	flag.BoolVar(&validateConfig, "validate", false, "validate config and exit")
 	flag.BoolVar(&metricsEnabled, "metrics", false, "enable prometheus metrics endpoint")
 	flag.BoolVar(&calendarMetricsEnabled, "metrics-calendar-labels", false, "enable per-calendar prometheus metrics")
@@ -91,7 +91,7 @@ func main() {
 		slog.Warn("Prometheus metrics endpoint enabled on public listener; set -management-address to expose management endpoints separately")
 	}
 
-	servers := buildHTTPServers(runtimeConfig, listenPort, managementAddress, metrics)
+	servers := buildHTTPServers(runtimeConfig, address, managementAddress, metrics)
 	if err := runHTTPServers(servers...); err != nil {
 		slog.Error("Error running web server", "error", err)
 		os.Exit(1)

@@ -164,7 +164,7 @@ calendars:
 ## Endpoints
 
 The service exposes a simple HTTP API for accessing the proxied calendars.
-The base URL is `http://<host>:<port>/calendars/<calendar_name>/feed`.
+The base URL is `http://<host>:<port>/calendars/<calendar_name>/feed`. The public listener defaults to `:8080` and can be changed with `-address`, for example `-address 127.0.0.1:8080`.
 
 Liveness and readiness endpoints are exposed at `/liveness` and `/readiness`. By default these are served on the main listener with the calendar endpoints. Set `-management-address`, such as `-management-address 127.0.0.1:9090`, to serve liveness, readiness, and metrics on a separate management listener instead.
 

@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 )
@@ -45,14 +44,14 @@ func buildHTTPHandler(listener string, handler http.Handler, metrics *prometheus
 	return requestLoggingMiddleware(handler)
 }
 
-func buildHTTPServers(config RuntimeConfig, listenPort int, managementAddress string, metrics *prometheusMetrics) []managedHTTPServer {
+func buildHTTPServers(config RuntimeConfig, address string, managementAddress string, metrics *prometheusMetrics) []managedHTTPServer {
 	publicMux := http.NewServeMux()
 	registerPublicRoutes(publicMux, config, metrics)
 
 	servers := []managedHTTPServer{
 		{
 			name:   "public",
-			server: newHTTPServer(":"+strconv.Itoa(listenPort), buildHTTPHandler("public", publicMux, metrics)),
+			server: newHTTPServer(address, buildHTTPHandler("public", publicMux, metrics)),
 		},
 	}
 
