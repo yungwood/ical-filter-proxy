@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"regexp"
 	"strings"
@@ -22,6 +23,18 @@ func (smr StringMatchRule) hasConditions() bool {
 		smr.Prefix != "" ||
 		smr.Suffix != "" ||
 		smr.RegexMatch != ""
+}
+
+func (smr StringMatchRule) validate() error {
+	if smr.RegexMatch == "" {
+		return nil
+	}
+
+	if _, err := regexp.Compile(smr.RegexMatch); err != nil {
+		return fmt.Errorf("invalid regex %q: %w", smr.RegexMatch, err)
+	}
+
+	return nil
 }
 
 // Returns true if a given string (data) matches ALL StringMatchRule conditions

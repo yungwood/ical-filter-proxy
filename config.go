@@ -79,9 +79,36 @@ func (config *Config) LoadConfig(file string) bool {
 			slog.Warn("Calendar has no filters and will be proxy-only", "calendar", calendarConfig.Name)
 			continue
 		}
+
+		if !calendarConfig.validateFilters() {
+			return false
+		}
 	}
 
 	return true // config is parsed successfully
+}
+
+func (calendarConfig CalendarConfig) validateFilters() bool {
+	for filterIndex, filter := range calendarConfig.Filters {
+		matchRules := []struct {
+			name string
+			rule StringMatchRule
+		}{
+			{name: "summary", rule: filter.Match.Summary},
+			{name: "description", rule: filter.Match.Description},
+			{name: "location", rule: filter.Match.Location},
+			{name: "url", rule: filter.Match.URL},
+		}
+
+		for _, matchRule := range matchRules {
+			if err := matchRule.rule.validate(); err != nil {
+				slog.Error("Invalid string match rule", "calendar", calendarConfig.Name, "filter_index", filterIndex, "property", matchRule.name, "error", err)
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 func readSecretFile(filePath string) (string, error) {

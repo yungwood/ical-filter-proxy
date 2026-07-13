@@ -88,6 +88,21 @@ calendars:
 `,
 			want: false,
 		},
+		{
+			name: "invalid filter regex",
+			yaml: `
+calendars:
+  - name: public
+    public: true
+    feed_url: https://example.com/feed.ics
+    filters:
+      - description: invalid regex
+        match:
+          summary:
+            regex: "["
+`,
+			want: false,
+		},
 	}
 
 	for _, tt := range tests {

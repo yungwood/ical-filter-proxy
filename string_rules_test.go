@@ -50,6 +50,39 @@ func TestStringMatchRuleHasConditions(t *testing.T) {
 	}
 }
 
+func TestStringMatchRuleValidate(t *testing.T) {
+	tests := []struct {
+		name    string
+		rule    StringMatchRule
+		wantErr bool
+	}{
+		{
+			name:    "empty rule is valid",
+			rule:    StringMatchRule{},
+			wantErr: false,
+		},
+		{
+			name:    "valid regex is valid",
+			rule:    StringMatchRule{RegexMatch: `cal.*event`},
+			wantErr: false,
+		},
+		{
+			name:    "invalid regex is invalid",
+			rule:    StringMatchRule{RegexMatch: `[`},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.rule.validate()
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestStringMatchRuleMatchesString(t *testing.T) {
 	tests := []struct {
 		name string
