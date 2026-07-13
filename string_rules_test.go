@@ -174,3 +174,101 @@ func TestStringMatchRuleMatchesString(t *testing.T) {
 		})
 	}
 }
+
+func TestStringTransformRuleHasActions(t *testing.T) {
+	tests := []struct {
+		name string
+		rule StringTransformRule
+		want bool
+	}{
+		{
+			name: "empty rule",
+			rule: StringTransformRule{},
+			want: false,
+		},
+		{
+			name: "replace action",
+			rule: StringTransformRule{Replace: "new"},
+			want: true,
+		},
+		{
+			name: "remove action",
+			rule: StringTransformRule{Remove: true},
+			want: true,
+		},
+		{
+			name: "prefix action",
+			rule: StringTransformRule{Prefix: "new "},
+			want: true,
+		},
+		{
+			name: "suffix action",
+			rule: StringTransformRule{Suffix: " new"},
+			want: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.rule.hasActions()
+			if got != tt.want {
+				t.Fatalf("hasActions() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestApplyStringTransform(t *testing.T) {
+	tests := []struct {
+		name  string
+		value string
+		rule  StringTransformRule
+		want  string
+	}{
+		{
+			name:  "empty rule keeps value",
+			value: "calendar event",
+			rule:  StringTransformRule{},
+			want:  "calendar event",
+		},
+		{
+			name:  "remove wins",
+			value: "calendar event",
+			rule:  StringTransformRule{Remove: true, Replace: "replacement", Prefix: "[", Suffix: "]"},
+			want:  "",
+		},
+		{
+			name:  "replace wins over prefix and suffix",
+			value: "calendar event",
+			rule:  StringTransformRule{Replace: "replacement", Prefix: "[", Suffix: "]"},
+			want:  "replacement",
+		},
+		{
+			name:  "prefix and suffix apply together",
+			value: "calendar event",
+			rule:  StringTransformRule{Prefix: "[", Suffix: "]"},
+			want:  "[calendar event]",
+		},
+		{
+			name:  "prefix applies to empty value",
+			value: "",
+			rule:  StringTransformRule{Prefix: "prefix"},
+			want:  "prefix",
+		},
+		{
+			name:  "suffix applies to empty value",
+			value: "",
+			rule:  StringTransformRule{Suffix: "suffix"},
+			want:  "suffix",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := applyStringTransform(tt.value, tt.rule)
+			if got != tt.want {
+				t.Fatalf("applyStringTransform() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
