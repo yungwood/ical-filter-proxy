@@ -28,7 +28,7 @@ func TestNewHTTPServerSetsTimeouts(t *testing.T) {
 }
 
 func TestBuildHTTPServersRegistersInternalRoutesOnPublicServerByDefault(t *testing.T) {
-	servers := buildHTTPServers(testServerConfig(), 8080, "", nil)
+	servers := buildHTTPServers(testServerConfig(), ":8080", "", nil)
 
 	if len(servers) != 1 {
 		t.Fatalf("server count = %d, want 1", len(servers))
@@ -45,7 +45,7 @@ func TestBuildHTTPServersRegistersInternalRoutesOnPublicServerByDefault(t *testi
 }
 
 func TestBuildHTTPServersSeparatesManagementRoutes(t *testing.T) {
-	servers := buildHTTPServers(testServerConfig(), 8080, "127.0.0.1:9090", nil)
+	servers := buildHTTPServers(testServerConfig(), ":8080", "127.0.0.1:9090", nil)
 
 	if len(servers) != 2 {
 		t.Fatalf("server count = %d, want 2", len(servers))
