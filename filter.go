@@ -6,9 +6,9 @@ import (
 	ics "github.com/arran4/golang-ical"
 )
 
-// Filter is the YAML-backed filter configuration. It is compiled into
-// CompiledFilter before runtime event processing.
-type Filter struct {
+// FilterConfig is the YAML-backed filter configuration. It is compiled into
+// Filter before runtime event processing.
+type FilterConfig struct {
 	Description string              `yaml:"description"`
 	RemoveEvent bool                `yaml:"remove"`
 	Stop        bool                `yaml:"stop"`
@@ -16,10 +16,10 @@ type Filter struct {
 	Transform   EventTransformRules `yaml:"transform"`
 }
 
-// CompiledFilter is the runtime filter representation. Match rules are compiled
+// Filter is the runtime filter representation. Match rules are compiled
 // once during config preparation; transforms remain raw because they are already
 // directly executable.
-type CompiledFilter struct {
+type Filter struct {
 	Description string
 	RemoveEvent bool
 	Stop        bool
@@ -27,13 +27,13 @@ type CompiledFilter struct {
 	Transform   EventTransformRules
 }
 
-func (filter Filter) compile() (CompiledFilter, error) {
+func (filter FilterConfig) compile() (Filter, error) {
 	match, err := filter.Match.compile()
 	if err != nil {
-		return CompiledFilter{}, err
+		return Filter{}, err
 	}
 
-	return CompiledFilter{
+	return Filter{
 		Description: filter.Description,
 		RemoveEvent: filter.RemoveEvent,
 		Stop:        filter.Stop,
@@ -43,7 +43,7 @@ func (filter Filter) compile() (CompiledFilter, error) {
 }
 
 // Returns true if a VEvent matches the Filter conditions
-func (filter CompiledFilter) matchesEvent(event ics.VEvent) bool {
+func (filter Filter) matchesEvent(event ics.VEvent) bool {
 
 	// If an event property is not defined golang-ical returns a nil pointer
 
@@ -73,7 +73,7 @@ func (filter CompiledFilter) matchesEvent(event ics.VEvent) bool {
 }
 
 // Applies filter transformations to a VEvent pointer
-func (filter CompiledFilter) transformEvent(event *ics.VEvent) {
+func (filter Filter) transformEvent(event *ics.VEvent) {
 	stringTransforms := []eventStringTransform{
 		{property: ics.ComponentPropertySummary, rule: filter.Transform.Summary, set: func(value string) { event.SetSummary(value) }},
 		{property: ics.ComponentPropertyDescription, rule: filter.Transform.Description, set: func(value string) { event.SetDescription(value) }},

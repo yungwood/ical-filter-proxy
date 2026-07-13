@@ -14,14 +14,14 @@ import (
 // into Calendar before request handling so runtime code uses compiled filters
 // and resolved secret values.
 type CalendarConfig struct {
-	Name        string   `yaml:"name"`
-	PublishName string   `yaml:"publish_name"`
-	Public      bool     `yaml:"public"`
-	Token       string   `yaml:"token"`
-	TokenFile   string   `yaml:"token_file"`
-	FeedURL     string   `yaml:"feed_url"`
-	FeedURLFile string   `yaml:"feed_url_file"`
-	Filters     []Filter `yaml:"filters"`
+	Name        string         `yaml:"name"`
+	PublishName string         `yaml:"publish_name"`
+	Public      bool           `yaml:"public"`
+	Token       string         `yaml:"token"`
+	TokenFile   string         `yaml:"token_file"`
+	FeedURL     string         `yaml:"feed_url"`
+	FeedURLFile string         `yaml:"feed_url_file"`
+	Filters     []FilterConfig `yaml:"filters"`
 }
 
 type RuntimeConfig struct {
@@ -37,13 +37,13 @@ type Calendar struct {
 	Public      bool
 	Token       string
 	FeedURL     string
-	Filters     []CompiledFilter
+	Filters     []Filter
 }
 
 func (config Config) RuntimeConfig() (RuntimeConfig, error) {
 	calendars := make([]Calendar, 0, len(config.Calendars))
 	for _, calendarConfig := range config.Calendars {
-		filters := make([]CompiledFilter, 0, len(calendarConfig.Filters))
+		filters := make([]Filter, 0, len(calendarConfig.Filters))
 		for filterIndex, filter := range calendarConfig.Filters {
 			compiledFilter, err := filter.compile()
 			if err != nil {

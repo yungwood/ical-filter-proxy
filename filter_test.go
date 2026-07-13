@@ -129,7 +129,7 @@ func TestFilterMatchesEvent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			filter := mustCompileFilter(t, Filter{Match: tt.match})
+			filter := mustCompileFilter(t, FilterConfig{Match: tt.match})
 			got := filter.matchesEvent(*tt.event)
 			if got != tt.want {
 				t.Fatalf("matchesEvent() = %v, want %v", got, tt.want)
@@ -311,7 +311,7 @@ func TestFilterTransformEvent(t *testing.T) {
 				event.SetURL("https://example.com/original")
 			})
 
-			filter := mustCompileFilter(t, Filter{Transform: tt.transform})
+			filter := mustCompileFilter(t, FilterConfig{Transform: tt.transform})
 			filter.transformEvent(event)
 
 			for property, want := range tt.want {
@@ -338,7 +338,7 @@ func testEvent(summary string, options ...func(*ics.VEvent)) *ics.VEvent {
 	return event
 }
 
-func mustCompileFilter(t *testing.T, filter Filter) CompiledFilter {
+func mustCompileFilter(t *testing.T, filter FilterConfig) Filter {
 	t.Helper()
 
 	compiledFilter, err := filter.compile()
@@ -349,10 +349,10 @@ func mustCompileFilter(t *testing.T, filter Filter) CompiledFilter {
 	return compiledFilter
 }
 
-func mustCompileFilters(t *testing.T, filters []Filter) []CompiledFilter {
+func mustCompileFilters(t *testing.T, filters []FilterConfig) []Filter {
 	t.Helper()
 
-	compiledFilters := make([]CompiledFilter, 0, len(filters))
+	compiledFilters := make([]Filter, 0, len(filters))
 	for _, filter := range filters {
 		compiledFilters = append(compiledFilters, mustCompileFilter(t, filter))
 	}
