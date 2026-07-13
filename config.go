@@ -20,7 +20,7 @@ type Config struct {
 func LoadConfig(file string) (Config, error) {
 	data, err := os.ReadFile(file)
 	if err != nil {
-		return Config{}, fmt.Errorf("open config file %q: %w", file, err)
+		return Config{}, fmt.Errorf("open config file %q: %w; use -config to specify a different file", file, err)
 	}
 
 	var config Config
@@ -31,7 +31,7 @@ func LoadConfig(file string) (Config, error) {
 
 	// ensure calendars exist
 	if len(config.Calendars) == 0 {
-		return Config{}, errors.New("no calendars configured")
+		return Config{}, errors.New("no calendars configured; configuration must define at least one calendar")
 	}
 
 	// validate calendar configs and load secrets
