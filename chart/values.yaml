@@ -58,6 +58,15 @@ config:
   #         transform:
   #           url:
   #             replace: "https://example.com/meeting"
+  #       - description: "Clean up event summaries"
+  #         transform:
+  #           summary:
+  #             trim_prefix: "Canceled: "
+  #             trim_suffix: " - tentative"
+  #             replace_text:
+  #               old: "sync"
+  #               new: "planning"
+  #               all: true
   #   - name: secrets
   #     feed_url_file: /run/secrets/url
   #     token_file: /run/secrets/token

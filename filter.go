@@ -33,6 +33,9 @@ func (filter FilterConfig) compile() (Filter, error) {
 	if err != nil {
 		return Filter{}, err
 	}
+	if err := filter.Transform.validate(); err != nil {
+		return Filter{}, err
+	}
 
 	return Filter{
 		Description: filter.Description,
@@ -135,6 +138,25 @@ type EventTransformRules struct {
 	Description StringTransformRule `yaml:"description"`
 	Location    StringTransformRule `yaml:"location"`
 	URL         StringTransformRule `yaml:"url"`
+}
+
+func (rules EventTransformRules) validate() error {
+	stringTransforms := []struct {
+		name string
+		rule StringTransformRule
+	}{
+		{name: "summary", rule: rules.Summary},
+		{name: "description", rule: rules.Description},
+		{name: "location", rule: rules.Location},
+		{name: "url", rule: rules.URL},
+	}
+	for _, transform := range stringTransforms {
+		if err := transform.rule.validate(); err != nil {
+			return fmt.Errorf("%s: %w", transform.name, err)
+		}
+	}
+
+	return nil
 }
 
 type eventStringMatch struct {

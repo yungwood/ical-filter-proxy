@@ -33,6 +33,49 @@
         }
       },
       "type": "object"
+    },
+    "stringTransformRule": {
+      "additionalProperties": false,
+      "properties": {
+        "prefix": {
+          "type": "string"
+        },
+        "replace": {
+          "type": "string"
+        },
+        "remove": {
+          "type": "boolean"
+        },
+        "replace_text": {
+          "additionalProperties": false,
+          "properties": {
+            "all": {
+              "type": "boolean"
+            },
+            "new": {
+              "type": "string"
+            },
+            "old": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "old"
+          ],
+          "type": "object"
+        },
+        "suffix": {
+          "type": "string"
+        },
+        "trim_prefix": {
+          "type": "string"
+        },
+        "trim_suffix": {
+          "type": "string"
+        }
+      },
+      "type": "object"
     }
   },
   "properties": {
@@ -113,64 +156,16 @@
                       "additionalProperties": false,
                       "properties": {
                         "summary": {
-                          "additionalProperties": false,
-                          "properties": {
-                            "prefix": {
-                              "type": "string"
-                            },
-                            "replace": {
-                              "type": "string"
-                            },
-                            "remove": {
-                              "type": "boolean"
-                            },
-                            "suffix": {
-                              "type": "string"
-                            }
-                          },
-                          "type": "object"
+                          "$ref": "#/$defs/stringTransformRule"
                         },
                         "description": {
-                          "additionalProperties": false,
-                          "properties": {
-                            "prefix": {
-                              "type": "string"
-                            },
-                            "replace": {
-                              "type": "string"
-                            },
-                            "remove": {
-                              "type": "boolean"
-                            },
-                            "suffix": {
-                              "type": "string"
-                            }
-                          },
-                          "type": "object"
+                          "$ref": "#/$defs/stringTransformRule"
                         },
                         "location": {
-                          "additionalProperties": false,
-                          "properties": {
-                            "replace": {
-                              "type": "string"
-                            },
-                            "remove": {
-                              "type": "boolean"
-                            }
-                          },
-                          "type": "object"
+                          "$ref": "#/$defs/stringTransformRule"
                         },
                         "url": {
-                          "additionalProperties": false,
-                          "properties": {
-                            "replace": {
-                              "type": "string"
-                            },
-                            "remove": {
-                              "type": "boolean"
-                            }
-                          },
-                          "type": "object"
+                          "$ref": "#/$defs/stringTransformRule"
                         }
                       },
                       "type": "object"

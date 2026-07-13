@@ -239,10 +239,15 @@ Transformations can be applied to the following event properties:
 
 The following transformations are available for strings:
 
-- `replace` - the property is replace with this value
-- `remove` - if `true` the property is set to a blank string
+- `remove` - if `true` the property is set to a blank string. This takes precedence over all other transform options.
+- `replace` - the property is replaced with this value. This takes precedence over `trim_prefix`, `trim_suffix`, `replace_text`, `prefix`, and `suffix`.
+- `trim_prefix` - remove this value when the property starts with it
+- `trim_suffix` - remove this value when the property ends with it
+- `replace_text` - replace literal text within the property. `old` is required, `new` is the replacement, and `all: true` replaces every occurrence instead of only the first.
 - `prefix` - this value is added before the existing property value
 - `suffix` - this value is added after the existing property value
+
+When `remove` and `replace` are not set, string transforms are applied in this order: `trim_prefix`, `trim_suffix`, `replace_text`, `prefix`, `suffix`.
 
 ### Secrets
 
