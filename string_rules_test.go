@@ -50,39 +50,6 @@ func TestStringMatchRuleConfigHasConditions(t *testing.T) {
 	}
 }
 
-func TestStringMatchRuleConfigValidate(t *testing.T) {
-	tests := []struct {
-		name    string
-		rule    StringMatchRuleConfig
-		wantErr bool
-	}{
-		{
-			name:    "empty rule is valid",
-			rule:    StringMatchRuleConfig{},
-			wantErr: false,
-		},
-		{
-			name:    "valid regex is valid",
-			rule:    StringMatchRuleConfig{RegexMatch: `cal.*event`},
-			wantErr: false,
-		},
-		{
-			name:    "invalid regex is invalid",
-			rule:    StringMatchRuleConfig{RegexMatch: `[`},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := tt.rule.validate()
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("validate() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestStringMatchRuleConfigCompile(t *testing.T) {
 	rule, err := (StringMatchRuleConfig{
 		Contains:   "calendar",

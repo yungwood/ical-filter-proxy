@@ -25,11 +25,6 @@ func (smr StringMatchRuleConfig) hasConditions() bool {
 		smr.RegexMatch != ""
 }
 
-func (smr StringMatchRuleConfig) validate() error {
-	_, err := smr.compile()
-	return err
-}
-
 func (smr StringMatchRuleConfig) compile() (StringMatchRule, error) {
 	rule := StringMatchRule{
 		Null:     smr.Null,
