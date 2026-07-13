@@ -130,7 +130,7 @@ func TestFilterMatchesEvent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			filter := mustCompileFilter(t, FilterConfig{Match: tt.match})
-			got := filter.matchesEvent(*tt.event)
+			got := filter.matchesEvent(*tt.event, "test")
 			if got != tt.want {
 				t.Fatalf("matchesEvent() = %v, want %v", got, tt.want)
 			}

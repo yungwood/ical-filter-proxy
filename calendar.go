@@ -128,12 +128,12 @@ func (calendar Calendar) ProcessEvent(event *ics.VEvent) bool {
 	for id, filter := range calendar.Filters {
 
 		// Does the filter match the event?
-		if filter.matchesEvent(*event) {
-			slog.Debug("filter match found", "rule_id", id, "filter_description", filter.Description, "event_summary", summary.Value)
+		if filter.matchesEvent(*event, calendar.Name) {
+			slog.Debug("filter match found", "calendar", calendar.Name, "rule_id", id, "filter_description", filter.Description, "event_summary", summary.Value)
 
 			// The event should get dropped if RemoveEvent is set
 			if filter.RemoveEvent {
-				slog.Debug("event removed; stopping rule processing", "action", "delete", "rule_id", id, "filter_description", filter.Description, "event_summary", summary.Value)
+				slog.Debug("event removed; stopping rule processing", "calendar", calendar.Name, "action", "delete", "rule_id", id, "filter_description", filter.Description, "event_summary", summary.Value)
 				return false
 			}
 
@@ -142,14 +142,14 @@ func (calendar Calendar) ProcessEvent(event *ics.VEvent) bool {
 
 			// Check if we should stop processing rules
 			if filter.Stop {
-				slog.Debug("filter stop set; stopping rule processing", "rule_id", id, "filter_description", filter.Description, "event_summary", summary.Value)
+				slog.Debug("filter stop set; stopping rule processing", "calendar", calendar.Name, "rule_id", id, "filter_description", filter.Description, "event_summary", summary.Value)
 				return true
 			}
 		}
 	}
 
 	// Keep event by default if all Filter rules are processed
-	slog.Debug("rule processing complete; keeping event", "rule_id", nil, "event_summary", summary.Value)
+	slog.Debug("rule processing complete; keeping event", "calendar", calendar.Name, "rule_id", nil, "event_summary", summary.Value)
 	return true
 
 }

@@ -44,14 +44,14 @@ func (filter FilterConfig) compile() (Filter, error) {
 }
 
 // Returns true if a VEvent matches the Filter conditions
-func (filter Filter) matchesEvent(event ics.VEvent) bool {
+func (filter Filter) matchesEvent(event ics.VEvent, calendarName string) bool {
 
 	// If an event property is not defined golang-ical returns a nil pointer
 
 	// Get event Summary - only used for debug logging
 	eventSummary := event.GetProperty(ics.ComponentPropertySummary)
 	if eventSummary == nil {
-		slog.Debug("event missing summary; dropping event")
+		slog.Debug("event missing summary; dropping event", "calendar", calendarName)
 		return false // never match if VEvent has no summary
 	}
 
@@ -63,13 +63,13 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 	}
 	for _, match := range stringMatches {
 		if !eventStringPropertyMatches(event, match.property, match.rule) {
-			slog.Debug("event property does not match filter conditions", "property", match.name, "event_summary", eventSummary.Value, "filter", filter.Description)
+			slog.Debug("event property does not match filter conditions", "calendar", calendarName, "property", match.name, "event_summary", eventSummary.Value, "filter_description", filter.Description)
 			return false
 		}
 	}
 
 	// VEvent must match if we get here
-	slog.Debug("event matches filter conditions", "event_summary", eventSummary.Value, "filter", filter.Description)
+	slog.Debug("event matches filter conditions", "calendar", calendarName, "event_summary", eventSummary.Value, "filter_description", filter.Description)
 	return true
 }
 
