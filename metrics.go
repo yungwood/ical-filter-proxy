@@ -52,7 +52,7 @@ func newPrometheusMetrics(calendarMetricsEnabled bool) *prometheusMetrics {
 				Name:      "requests_total",
 				Help:      "Total number of HTTP requests.",
 			},
-			[]string{"listener", "handler", "method", "status"},
+			[]string{"listener", "route", "method", "status"},
 		),
 		requestDuration: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
@@ -62,7 +62,7 @@ func newPrometheusMetrics(calendarMetricsEnabled bool) *prometheusMetrics {
 				Help:      "Duration of HTTP requests in seconds.",
 				Buckets:   prometheus.DefBuckets,
 			},
-			[]string{"listener", "handler", "method", "status"},
+			[]string{"listener", "route", "method", "status"},
 		),
 		upstreamFetchesTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
@@ -168,7 +168,7 @@ func (m *prometheusMetrics) middleware(listener string, next http.Handler) http.
 
 		labels := prometheus.Labels{
 			"listener": listener,
-			"handler":  routeMetricLabel(listener, r.URL.Path),
+			"route":    routeMetricLabel(listener, r.URL.Path),
 			"method":   r.Method,
 			"status":   strconv.Itoa(statusCode),
 		}
@@ -217,13 +217,13 @@ func (m *prometheusMetrics) instrumentFetch(calendarName string, fetch calendarF
 func routeMetricLabel(listener string, path string) string {
 	switch {
 	case strings.HasPrefix(path, "/calendars/"):
-		return "calendar"
+		return "/calendars/{calendar}/feed"
 	case path == "/liveness":
-		return "liveness"
+		return "/liveness"
 	case path == "/readiness":
-		return "readiness"
+		return "/readiness"
 	case listener == "management" && path == "/metrics":
-		return "metrics"
+		return "/metrics"
 	default:
 		return "unknown"
 	}
