@@ -93,10 +93,10 @@ nix develop
 nix run github:yungwood/ical-filter-proxy -- --help
 
 # run a tagged release
-nix run github:yungwood/ical-filter-proxy/v0.3.0 -- --help
+nix run github:yungwood/ical-filter-proxy/0.3.0 -- --help
 ```
 
-Nix builds embed the flake source revision in `ical-filter-proxy -version` rather than the tag name. If you run a tagged release such as `v0.3.0`, the tag still controls the source being built, while the binary reports the exact commit revision for traceability.
+Nix builds embed the flake source revision in `ical-filter-proxy -version` rather than the tag name. If you run a tagged release such as `0.3.0`, the tag still controls the source being built, while the binary reports the exact commit revision for traceability.
 
 ## Configuration
 
@@ -166,6 +166,7 @@ calendars:
 The service exposes a simple HTTP API for accessing the proxied calendars.
 The base URL is `http://<host>:<port>/calendars/<calendar_name>/feed`.
 
+Prometheus metrics can be enabled with `-metrics`, which exposes `/metrics`.
 
 ### Filters
 
@@ -231,7 +232,7 @@ There are a few more features I would like to add before I call the project "sta
 
 - [ ] Time based event conditions
 - [ ] Caching
-- [ ] Prometheus metrics
+- [x] Prometheus metrics
 - [ ] Testing
 
 ## Contributing
