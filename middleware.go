@@ -44,7 +44,7 @@ func requestLoggingMiddleware(next http.Handler) http.Handler {
 		}
 
 		slog.Info(
-			"HTTP request processed",
+			"http request processed",
 			"method", r.Method,
 			"path", r.URL.Path,
 			"status", statusCode,
@@ -60,7 +60,7 @@ func recoveryMiddleware(next http.Handler) http.Handler {
 		defer func() {
 			if recovered := recover(); recovered != nil {
 				slog.Error(
-					"Recovered panic while processing HTTP request",
+					"recovered panic while processing http request",
 					"panic", fmt.Sprint(recovered),
 					"path", r.URL.Path,
 					"client_ip", r.RemoteAddr,

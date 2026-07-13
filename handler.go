@@ -26,7 +26,7 @@ func calendarFeedHandlerWithFetch(calendar Calendar, fetch calendarFetchFunc) ht
 		}
 
 		if !calendar.Public && !tokenMatches(r.URL.Query().Get("token"), calendar.Token) {
-			slog.Warn("Unauthorized access attempt", "client_ip", r.RemoteAddr)
+			slog.Warn("unauthorized calendar access", "calendar", calendar.Name, "client_ip", r.RemoteAddr)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -34,7 +34,7 @@ func calendarFeedHandlerWithFetch(calendar Calendar, fetch calendarFetchFunc) ht
 		// fetch and filter upstream calendar
 		feed, err := fetch(r.Context())
 		if err != nil {
-			slog.Error("Error fetching and filtering feed", "error", err)
+			slog.Error("calendar feed request failed", "calendar", calendar.Name, "error", err)
 			http.Error(w, "Bad Gateway", http.StatusBadGateway)
 			return
 		}
@@ -47,7 +47,7 @@ func calendarFeedHandlerWithFetch(calendar Calendar, fetch calendarFetchFunc) ht
 
 		_, err = w.Write(feed)
 		if err != nil {
-			slog.Error("Error writing response", "error", err)
+			slog.Error("calendar feed response write failed", "calendar", calendar.Name, "error", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}

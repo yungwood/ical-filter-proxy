@@ -73,7 +73,7 @@ func buildHTTPServers(config RuntimeConfig, address string, managementAddress st
 func runHTTPServers(servers ...managedHTTPServer) error {
 	serverErr := make(chan httpServerError, len(servers))
 	for _, managedServer := range servers {
-		slog.Info("Starting web server", "name", managedServer.name, "address", managedServer.server.Addr)
+		slog.Info("starting web server", "name", managedServer.name, "address", managedServer.server.Addr)
 		go func(managedServer managedHTTPServer) {
 			serverErr <- httpServerError{
 				name: managedServer.name,
@@ -92,16 +92,16 @@ func runHTTPServers(servers ...managedHTTPServer) error {
 			return fmt.Errorf("%s server: %w", err.name, err.err)
 		}
 	case sig := <-shutdownSignal:
-		slog.Info("Stopping web servers", "signal", sig.String())
+		slog.Info("stopping web servers", "signal", sig.String())
 
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
 		defer cancel()
 
 		for _, managedServer := range servers {
 			if err := managedServer.server.Shutdown(shutdownCtx); err != nil {
-				slog.Error("Error stopping web server", "name", managedServer.name, "error", err)
+				slog.Error("web server shutdown failed", "name", managedServer.name, "error", err)
 				if closeErr := managedServer.server.Close(); closeErr != nil && !errors.Is(closeErr, http.ErrServerClosed) {
-					slog.Error("Error closing web server", "name", managedServer.name, "error", closeErr)
+					slog.Error("web server close failed", "name", managedServer.name, "error", closeErr)
 				}
 			}
 		}

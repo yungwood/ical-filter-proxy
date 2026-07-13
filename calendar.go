@@ -72,7 +72,7 @@ func (config Config) Compile() (RuntimeConfig, error) {
 func (calendar Calendar) fetch(ctx context.Context) ([]byte, error) {
 
 	// get the iCal feed
-	slog.Debug("Fetching iCal feed", "url", redactURL(calendar.FeedURL))
+	slog.Debug("fetching upstream calendar", "calendar", calendar.Name, "url", redactURL(calendar.FeedURL))
 	feedData, err := fetchUpstreamCalendar(ctx, calendar.FeedURL)
 	if err != nil {
 		return nil, err
@@ -90,15 +90,15 @@ func (calendar Calendar) fetch(ctx context.Context) ([]byte, error) {
 
 	// process filters
 	if len(calendar.Filters) > 0 {
-		slog.Debug("Processing filters", "calendar", calendar.Name)
+		slog.Debug("processing filters", "calendar", calendar.Name)
 		for _, event := range cal.Events() {
 			if !calendar.ProcessEvent(event) {
 				cal.RemoveEvent(event.Id())
 			}
 		}
-		slog.Debug("Filter processing completed", "calendar", calendar.Name)
+		slog.Debug("filter processing completed", "calendar", calendar.Name)
 	} else {
-		slog.Debug("No filters to evaluate", "calendar", calendar.Name)
+		slog.Debug("no filters to evaluate", "calendar", calendar.Name)
 	}
 
 	// serialize output
@@ -129,11 +129,11 @@ func (calendar Calendar) ProcessEvent(event *ics.VEvent) bool {
 
 		// Does the filter match the event?
 		if filter.matchesEvent(*event) {
-			slog.Debug("Filter match found", "rule_id", id, "filter_description", filter.Description, "event_summary", summary.Value)
+			slog.Debug("filter match found", "rule_id", id, "filter_description", filter.Description, "event_summary", summary.Value)
 
 			// The event should get dropped if RemoveEvent is set
 			if filter.RemoveEvent {
-				slog.Debug("Event to be removed, no more rules will be processed", "action", "DELETE", "rule_id", id, "filter_description", filter.Description, "event_summary", summary.Value)
+				slog.Debug("event removed; stopping rule processing", "action", "delete", "rule_id", id, "filter_description", filter.Description, "event_summary", summary.Value)
 				return false
 			}
 
@@ -142,14 +142,14 @@ func (calendar Calendar) ProcessEvent(event *ics.VEvent) bool {
 
 			// Check if we should stop processing rules
 			if filter.Stop {
-				slog.Debug("Stop option is set, no more rules will be processed", "rule_id", id, "filter_description", filter.Description, "event_summary", summary.Value)
+				slog.Debug("filter stop set; stopping rule processing", "rule_id", id, "filter_description", filter.Description, "event_summary", summary.Value)
 				return true
 			}
 		}
 	}
 
 	// Keep event by default if all Filter rules are processed
-	slog.Debug("Rule processing complete, event will be kept", "rule_id", nil, "event_summary", summary.Value)
+	slog.Debug("rule processing complete; keeping event", "rule_id", nil, "event_summary", summary.Value)
 	return true
 
 }
