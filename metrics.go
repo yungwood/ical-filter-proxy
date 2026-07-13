@@ -218,10 +218,14 @@ func (m *prometheusMetrics) instrumentFetch(calendarName string, fetch calendarF
 }
 
 func observeHTTPDuration(route string) bool {
+	// Keep histograms focused on calendar feed requests; management and unknown
+	// routes are usually probes or mistakes and add little latency signal.
 	return route == "/calendars/{calendar}/feed"
 }
 
 func routeMetricLabel(listener string, path string) string {
+	// Normalize request paths before labelling metrics so calendar names,
+	// tokens, and arbitrary unknown paths are not exposed as label values.
 	switch {
 	case strings.HasPrefix(path, "/calendars/"):
 		return "/calendars/{calendar}/feed"

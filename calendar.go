@@ -40,6 +40,9 @@ type Calendar struct {
 	Filters     []Filter
 }
 
+// RuntimeConfig converts validated YAML config into runtime state used by the
+// HTTP server. This is where raw match rules are compiled and regex syntax
+// errors become startup validation failures.
 func (config Config) RuntimeConfig() (RuntimeConfig, error) {
 	calendars := make([]Calendar, 0, len(config.Calendars))
 	for _, calendarConfig := range config.Calendars {
