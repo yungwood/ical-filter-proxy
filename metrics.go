@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net/http"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -20,6 +21,7 @@ const (
 
 type prometheusMetrics struct {
 	registry                      *prometheus.Registry
+	buildInfo                     *prometheus.GaugeVec
 	requestsTotal                 *prometheus.CounterVec
 	requestDuration               *prometheus.HistogramVec
 	upstreamFetchesTotal          *prometheus.CounterVec
@@ -36,6 +38,14 @@ func newPrometheusMetrics(calendarMetricsEnabled bool) *prometheusMetrics {
 	metrics := &prometheusMetrics{
 		registry:               registry,
 		calendarMetricsEnabled: calendarMetricsEnabled,
+		buildInfo: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: prometheusNamespace,
+				Name:      "build_info",
+				Help:      "Build information for ical-filter-proxy.",
+			},
+			[]string{"version", "revision", "goversion"},
+		),
 		requestsTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Namespace: prometheusNamespace,
@@ -76,7 +86,10 @@ func newPrometheusMetrics(calendarMetricsEnabled bool) *prometheusMetrics {
 		),
 	}
 
+	metrics.buildInfo.WithLabelValues(version, revision, runtime.Version()).Set(1)
+
 	collectors := []prometheus.Collector{
+		metrics.buildInfo,
 		metrics.requestsTotal,
 		metrics.requestDuration,
 		metrics.upstreamFetchesTotal,

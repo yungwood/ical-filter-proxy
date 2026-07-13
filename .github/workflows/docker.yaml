@@ -90,3 +90,4 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             VERSION=${{ env.VERSION }}
+            REVISION=${{ github.sha }}
