@@ -3,8 +3,8 @@ package main
 import "runtime"
 
 var (
-	version  = "development"
-	revision = "unknown"
+	version = "development"
+	commit  = "unknown"
 )
 
 type buildInfo struct {
@@ -16,7 +16,7 @@ type buildInfo struct {
 func currentBuildInfo() buildInfo {
 	return buildInfo{
 		Version:   version,
-		Revision:  revision,
+		Revision:  commit,
 		GoVersion: runtime.Version(),
 	}
 }
