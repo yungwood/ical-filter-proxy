@@ -30,7 +30,7 @@ jobs:
         uses: azure/setup-helm@v4
 
       - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.7.0
+        uses: helm/chart-testing-action@v2.8.0
 
       - name: Lint chart
         run: ct lint --charts chart --check-version-increment=false
@@ -46,10 +46,10 @@ jobs:
         uses: azure/setup-helm@v4
 
       - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.7.0
+        uses: helm/chart-testing-action@v2.8.0
 
       - name: Set up kind
-        uses: helm/kind-action@v1.12.0
+        uses: helm/kind-action@v1.14.0
 
       - name: Install chart
         run: ct install --charts chart --helm-extra-set-args "--set image.tag=main --set image.pullPolicy=Always"
