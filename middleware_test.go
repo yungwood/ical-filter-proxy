@@ -118,6 +118,36 @@ func TestRequestLoggingMiddlewareSkipsHealthEndpoints(t *testing.T) {
 	}
 }
 
+func TestRequestLoggingMiddlewareLogsFailedHealthEndpoints(t *testing.T) {
+	var logOutput bytes.Buffer
+	originalLogger := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logOutput, nil)))
+	t.Cleanup(func() {
+		slog.SetDefault(originalLogger)
+	})
+
+	handler := requestLoggingMiddleware(http.NotFoundHandler(), nil)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/readiness", nil)
+	if err != nil {
+		t.Fatalf("NewRequestWithContext() returned error: %v", err)
+	}
+	req.RemoteAddr = "192.0.2.1:12345"
+
+	handler.ServeHTTP(httptest.NewRecorder(), req)
+
+	got := logOutput.String()
+	if !strings.Contains(got, "path=/readiness") {
+		t.Fatalf("log output = %q, want readiness path", got)
+	}
+	if !strings.Contains(got, "status=404") {
+		t.Fatalf("log output = %q, want 404 status", got)
+	}
+	if !strings.Contains(got, "client_addr=192.0.2.1") {
+		t.Fatalf("log output = %q, want client address", got)
+	}
+}
+
 func TestRequestLoggingMiddlewareLogsNonHealthEndpoint(t *testing.T) {
 	var logOutput bytes.Buffer
 	originalLogger := slog.Default()

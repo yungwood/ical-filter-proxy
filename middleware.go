@@ -29,11 +29,6 @@ func (r *statusRecorder) Write(body []byte) (int, error) {
 
 func requestLoggingMiddleware(next http.Handler, trustedProxyCIDRs []netip.Prefix) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if isHealthEndpoint(r.URL.Path) {
-			next.ServeHTTP(w, r)
-			return
-		}
-
 		startedAt := time.Now()
 		recorder := &statusRecorder{ResponseWriter: w}
 
@@ -42,6 +37,9 @@ func requestLoggingMiddleware(next http.Handler, trustedProxyCIDRs []netip.Prefi
 		statusCode := recorder.statusCode
 		if statusCode == 0 {
 			statusCode = http.StatusOK
+		}
+		if isHealthEndpoint(r.URL.Path) && statusCode < http.StatusBadRequest {
+			return
 		}
 
 		logArgs := []any{
