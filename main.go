@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
 
 var version = "development"
@@ -70,22 +71,32 @@ func main() {
 
 	// iterate through calendars in the config and setup a handler for each
 	// todo: consider refactor to route requests dynamically?
+	mux := http.NewServeMux()
 	for _, calendarConfig := range config.Calendars {
 
 		// configure HTTP endpoint
 		httpPath := "/calendars/" + calendarConfig.Name + "/feed"
 		slog.Debug("Configuring endpoint", "calendar", calendarConfig.Name, "http_path", httpPath)
-		http.HandleFunc(httpPath, calendarFeedHandler(httpPath, calendarConfig))
+		mux.HandleFunc(httpPath, calendarFeedHandler(httpPath, calendarConfig))
 
 	}
 
 	// add a readiness and liveness check endpoint (return blank 200 OK response)
-	http.HandleFunc("/liveness", func(_ http.ResponseWriter, _ *http.Request) {})
-	http.HandleFunc("/readiness", func(_ http.ResponseWriter, _ *http.Request) {})
+	mux.HandleFunc("/liveness", func(_ http.ResponseWriter, _ *http.Request) {})
+	mux.HandleFunc("/readiness", func(_ http.ResponseWriter, _ *http.Request) {})
+
+	server := &http.Server{
+		Addr:              ":" + strconv.Itoa(listenPort),
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
 
 	// start the webserver
 	slog.Info("Starting web server", "port", listenPort)
-	if err := http.ListenAndServe(":"+strconv.Itoa(listenPort), nil); err != nil {
+	if err := server.ListenAndServe(); err != nil {
 		slog.Error("Error starting web server", "error", err)
 	}
 
