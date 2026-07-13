@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -43,4 +44,21 @@ func fetchUpstreamCalendar(ctx context.Context, feedURL string) ([]byte, error) 
 	}
 
 	return feedData, nil
+}
+
+func redactURL(rawURL string) string {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
+		return "<invalid-url>"
+	}
+
+	redacted := parsedURL.Scheme + "://" + parsedURL.Host + "/..."
+	if parsedURL.RawQuery != "" {
+		redacted += "?REDACTED"
+	}
+	if parsedURL.Fragment != "" {
+		redacted += "#REDACTED"
+	}
+
+	return redacted
 }

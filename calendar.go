@@ -28,7 +28,7 @@ type CalendarConfig struct {
 func (calendarConfig CalendarConfig) fetch(ctx context.Context) ([]byte, error) {
 
 	// get the iCal feed
-	slog.Debug("Fetching iCal feed", "url", calendarConfig.FeedURL)
+	slog.Debug("Fetching iCal feed", "url", redactURL(calendarConfig.FeedURL))
 	feedData, err := fetchUpstreamCalendar(ctx, calendarConfig.FeedURL)
 	if err != nil {
 		return nil, err
