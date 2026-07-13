@@ -36,7 +36,7 @@ jobs:
           go-version: stable
       - name: Check formatting
         run: |
-          files="$(gofmt -l *.go)"
+          files="$(gofmt -l ./*.go)"
           if [ -n "$files" ]; then
             echo "$files"
             exit 1
