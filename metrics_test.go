@@ -11,40 +11,52 @@ import (
 
 func TestRouteMetricLabel(t *testing.T) {
 	tests := []struct {
-		name string
-		path string
-		want string
+		name     string
+		listener string
+		path     string
+		want     string
 	}{
 		{
-			name: "calendar",
-			path: "/calendars/private/feed",
-			want: "calendar",
+			name:     "calendar",
+			listener: "public",
+			path:     "/calendars/private/feed",
+			want:     "calendar",
 		},
 		{
-			name: "liveness",
-			path: "/liveness",
-			want: "liveness",
+			name:     "liveness",
+			listener: "management",
+			path:     "/liveness",
+			want:     "liveness",
 		},
 		{
-			name: "readiness",
-			path: "/readiness",
-			want: "readiness",
+			name:     "readiness",
+			listener: "management",
+			path:     "/readiness",
+			want:     "readiness",
 		},
 		{
-			name: "metrics",
-			path: "/metrics",
-			want: "metrics",
+			name:     "metrics on management listener",
+			listener: "management",
+			path:     "/metrics",
+			want:     "metrics",
 		},
 		{
-			name: "unknown",
-			path: "/other",
-			want: "unknown",
+			name:     "metrics on public listener",
+			listener: "public",
+			path:     "/metrics",
+			want:     "unknown",
+		},
+		{
+			name:     "unknown",
+			listener: "public",
+			path:     "/other",
+			want:     "unknown",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := routeMetricLabel(tt.path)
+			got := routeMetricLabel(tt.listener, tt.path)
 			if got != tt.want {
 				t.Fatalf("routeMetricLabel() = %q, want %q", got, tt.want)
 			}
@@ -110,7 +122,7 @@ func TestCalendarNameFromPath(t *testing.T) {
 
 func TestMetricsMiddlewareRecordsRequest(t *testing.T) {
 	metrics := newPrometheusMetrics(false)
-	handler := metrics.middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	handler := metrics.middleware("public", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusAccepted)
 	}))
 
@@ -130,14 +142,14 @@ func TestMetricsMiddlewareRecordsRequest(t *testing.T) {
 	if strings.Contains(got, "private") || strings.Contains(got, "token=secret") {
 		t.Fatalf("metrics output includes sensitive route data: %q", got)
 	}
-	if !strings.Contains(got, `ical_filter_proxy_http_requests_total{handler="calendar",method="GET",status="202"} 1`) {
+	if !strings.Contains(got, `ical_filter_proxy_http_requests_total{handler="calendar",listener="public",method="GET",status="202"} 1`) {
 		t.Fatalf("metrics output = %q, want request counter sample", got)
 	}
 }
 
 func TestMetricsMiddlewareRecordsPerCalendarRequestWhenEnabled(t *testing.T) {
 	metrics := newPrometheusMetrics(true)
-	handler := metrics.middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	handler := metrics.middleware("public", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusAccepted)
 	}))
 
@@ -154,11 +166,33 @@ func TestMetricsMiddlewareRecordsPerCalendarRequestWhenEnabled(t *testing.T) {
 	if strings.Contains(got, "token=secret") {
 		t.Fatalf("metrics output includes query token: %q", got)
 	}
-	if !strings.Contains(got, `ical_filter_proxy_http_requests_total{handler="calendar",method="GET",status="202"} 1`) {
+	if !strings.Contains(got, `ical_filter_proxy_http_requests_total{handler="calendar",listener="public",method="GET",status="202"} 1`) {
 		t.Fatalf("metrics output = %q, want aggregate request counter sample", got)
 	}
 	if !strings.Contains(got, `ical_filter_proxy_calendar_requests_total{calendar="private",method="GET",status="202"} 1`) {
 		t.Fatalf("metrics output = %q, want per-calendar request counter sample", got)
+	}
+}
+
+func TestMetricsMiddlewareLabelsPublicMetricsPathAsUnknown(t *testing.T) {
+	metrics := newPrometheusMetrics(false)
+	handler := metrics.middleware("public", http.NotFoundHandler())
+
+	req := testRequest(t, "/metrics")
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusNotFound)
+	}
+
+	got := scrapeMetrics(t, metrics)
+	if !strings.Contains(got, `ical_filter_proxy_http_requests_total{handler="unknown",listener="public",method="GET",status="404"} 1`) {
+		t.Fatalf("metrics output = %q, want public /metrics to be labelled unknown", got)
+	}
+	if strings.Contains(got, `handler="metrics",listener="public"`) {
+		t.Fatalf("metrics output = %q, did not want public /metrics labelled as metrics", got)
 	}
 }
 

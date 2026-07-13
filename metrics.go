@@ -52,7 +52,7 @@ func newPrometheusMetrics(calendarMetricsEnabled bool) *prometheusMetrics {
 				Name:      "requests_total",
 				Help:      "Total number of HTTP requests.",
 			},
-			[]string{"handler", "method", "status"},
+			[]string{"listener", "handler", "method", "status"},
 		),
 		requestDuration: prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
@@ -62,7 +62,7 @@ func newPrometheusMetrics(calendarMetricsEnabled bool) *prometheusMetrics {
 				Help:      "Duration of HTTP requests in seconds.",
 				Buckets:   prometheus.DefBuckets,
 			},
-			[]string{"handler", "method", "status"},
+			[]string{"listener", "handler", "method", "status"},
 		),
 		upstreamFetchesTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
@@ -154,7 +154,7 @@ func (m *prometheusMetrics) handler() http.Handler {
 	return promhttp.HandlerFor(m.registry, promhttp.HandlerOpts{})
 }
 
-func (m *prometheusMetrics) middleware(next http.Handler) http.Handler {
+func (m *prometheusMetrics) middleware(listener string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		startedAt := time.Now()
 		recorder := &statusRecorder{ResponseWriter: w}
@@ -167,9 +167,10 @@ func (m *prometheusMetrics) middleware(next http.Handler) http.Handler {
 		}
 
 		labels := prometheus.Labels{
-			"handler": routeMetricLabel(r.URL.Path),
-			"method":  r.Method,
-			"status":  strconv.Itoa(statusCode),
+			"listener": listener,
+			"handler":  routeMetricLabel(listener, r.URL.Path),
+			"method":   r.Method,
+			"status":   strconv.Itoa(statusCode),
 		}
 		m.requestsTotal.With(labels).Inc()
 		m.requestDuration.With(labels).Observe(time.Since(startedAt).Seconds())
@@ -213,7 +214,7 @@ func (m *prometheusMetrics) instrumentFetch(calendarName string, fetch calendarF
 	}
 }
 
-func routeMetricLabel(path string) string {
+func routeMetricLabel(listener string, path string) string {
 	switch {
 	case strings.HasPrefix(path, "/calendars/"):
 		return "calendar"
@@ -221,7 +222,7 @@ func routeMetricLabel(path string) string {
 		return "liveness"
 	case path == "/readiness":
 		return "readiness"
-	case path == "/metrics":
+	case listener == "management" && path == "/metrics":
 		return "metrics"
 	default:
 		return "unknown"
