@@ -67,13 +67,17 @@ func main() {
 	}
 	slog.Debug("loaded config")
 
+	runtimeConfig, err := config.RuntimeConfig()
+	if err != nil {
+		slog.Error("Invalid configuration", "error", err)
+		os.Exit(1)
+	}
+
 	// print a message and exit if validate arg was specified
 	if validateConfig {
 		slog.Info("configuration was validated successfully")
 		os.Exit(0)
 	}
-
-	runtimeConfig := config.RuntimeConfig()
 
 	var metrics *prometheusMetrics
 	if metricsEnabled {

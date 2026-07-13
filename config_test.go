@@ -88,21 +88,6 @@ calendars:
 `,
 			want: false,
 		},
-		{
-			name: "invalid filter regex",
-			yaml: `
-calendars:
-  - name: public
-    public: true
-    feed_url: https://example.com/feed.ics
-    filters:
-      - description: invalid regex
-        match:
-          summary:
-            regex: "["
-`,
-			want: false,
-		},
 	}
 
 	for _, tt := range tests {
@@ -174,7 +159,10 @@ func TestConfigRuntimeConfig(t *testing.T) {
 		},
 	}
 
-	runtimeConfig := config.RuntimeConfig()
+	runtimeConfig, err := config.RuntimeConfig()
+	if err != nil {
+		t.Fatalf("RuntimeConfig() returned error: %v", err)
+	}
 
 	if len(runtimeConfig.Calendars) != 1 {
 		t.Fatalf("len(Calendars) = %d, want 1", len(runtimeConfig.Calendars))
@@ -198,6 +186,31 @@ func TestConfigRuntimeConfig(t *testing.T) {
 	}
 	if len(calendar.Filters) != 1 {
 		t.Fatalf("len(Filters) = %d, want 1", len(calendar.Filters))
+	}
+}
+
+func TestConfigRuntimeConfigRejectsInvalidRegex(t *testing.T) {
+	config := Config{
+		Calendars: []CalendarConfig{
+			{
+				Name:    "public",
+				Public:  true,
+				FeedURL: "https://example.com/feed.ics",
+				Filters: []Filter{
+					{
+						Description: "invalid regex",
+						Match: EventMatchRules{
+							Summary: StringMatchRule{RegexMatch: "["},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	_, err := config.RuntimeConfig()
+	if err == nil {
+		t.Fatal("RuntimeConfig() returned nil error")
 	}
 }
 

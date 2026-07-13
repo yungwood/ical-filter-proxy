@@ -83,6 +83,32 @@ func TestStringMatchRuleValidate(t *testing.T) {
 	}
 }
 
+func TestStringMatchRuleCompile(t *testing.T) {
+	rule, err := (StringMatchRule{
+		Contains:   "calendar",
+		Prefix:     "team",
+		Suffix:     "event",
+		RegexMatch: `team .* event`,
+	}).compile()
+	if err != nil {
+		t.Fatalf("compile() returned error: %v", err)
+	}
+
+	if !rule.matchesString("team calendar event") {
+		t.Fatal("compiled rule did not match expected value")
+	}
+	if rule.matchesString("team calendar shift") {
+		t.Fatal("compiled rule matched unexpected value")
+	}
+}
+
+func TestStringMatchRuleCompileInvalidRegex(t *testing.T) {
+	_, err := (StringMatchRule{RegexMatch: `[`}).compile()
+	if err == nil {
+		t.Fatal("compile() returned nil error")
+	}
+}
+
 func TestStringMatchRuleMatchesString(t *testing.T) {
 	tests := []struct {
 		name string

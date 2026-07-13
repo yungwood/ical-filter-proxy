@@ -15,8 +15,31 @@ type Filter struct {
 	Transform   EventTransformRules `yaml:"transform"`
 }
 
+type CompiledFilter struct {
+	Description string
+	RemoveEvent bool
+	Stop        bool
+	Match       CompiledEventMatchRules
+	Transform   EventTransformRules
+}
+
+func (filter Filter) compile() (CompiledFilter, error) {
+	match, err := filter.Match.compile()
+	if err != nil {
+		return CompiledFilter{}, err
+	}
+
+	return CompiledFilter{
+		Description: filter.Description,
+		RemoveEvent: filter.RemoveEvent,
+		Stop:        filter.Stop,
+		Match:       match,
+		Transform:   filter.Transform,
+	}, nil
+}
+
 // Returns true if a VEvent matches the Filter conditions
-func (filter Filter) matchesEvent(event ics.VEvent) bool {
+func (filter CompiledFilter) matchesEvent(event ics.VEvent) bool {
 
 	// If an event property is not defined golang-ical returns a nil pointer
 
@@ -46,7 +69,7 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 }
 
 // Applies filter transformations to a VEvent pointer
-func (filter Filter) transformEvent(event *ics.VEvent) {
+func (filter CompiledFilter) transformEvent(event *ics.VEvent) {
 	stringTransforms := []eventStringTransform{
 		{property: ics.ComponentPropertySummary, rule: filter.Transform.Summary, set: func(value string) { event.SetSummary(value) }},
 		{property: ics.ComponentPropertyDescription, rule: filter.Transform.Description, set: func(value string) { event.SetDescription(value) }},
@@ -66,6 +89,39 @@ type EventMatchRules struct {
 	URL         StringMatchRule `yaml:"url"`
 }
 
+type CompiledEventMatchRules struct {
+	Summary     CompiledStringMatchRule
+	Description CompiledStringMatchRule
+	Location    CompiledStringMatchRule
+	URL         CompiledStringMatchRule
+}
+
+func (rules EventMatchRules) compile() (CompiledEventMatchRules, error) {
+	summary, err := rules.Summary.compile()
+	if err != nil {
+		return CompiledEventMatchRules{}, err
+	}
+	description, err := rules.Description.compile()
+	if err != nil {
+		return CompiledEventMatchRules{}, err
+	}
+	location, err := rules.Location.compile()
+	if err != nil {
+		return CompiledEventMatchRules{}, err
+	}
+	url, err := rules.URL.compile()
+	if err != nil {
+		return CompiledEventMatchRules{}, err
+	}
+
+	return CompiledEventMatchRules{
+		Summary:     summary,
+		Description: description,
+		Location:    location,
+		URL:         url,
+	}, nil
+}
+
 // EventTransformRules contains VEvent properties that user can modify
 type EventTransformRules struct {
 	Summary     StringTransformRule `yaml:"summary"`
@@ -77,7 +133,7 @@ type EventTransformRules struct {
 type eventStringMatch struct {
 	property ics.ComponentProperty
 	name     string
-	rule     StringMatchRule
+	rule     CompiledStringMatchRule
 }
 
 type eventStringTransform struct {
@@ -86,7 +142,7 @@ type eventStringTransform struct {
 	set      func(string)
 }
 
-func eventStringPropertyMatches(event ics.VEvent, property ics.ComponentProperty, rule StringMatchRule) bool {
+func eventStringPropertyMatches(event ics.VEvent, property ics.ComponentProperty, rule CompiledStringMatchRule) bool {
 	if !rule.hasConditions() {
 		return true
 	}
