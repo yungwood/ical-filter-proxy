@@ -14,14 +14,12 @@
     "app": {
       "additionalProperties": false,
       "properties": {
-        "port": {
-          "maximum": 65535,
-          "minimum": 1,
-          "type": "integer"
+        "address": {
+          "type": "string"
         }
       },
       "required": [
-        "port"
+        "address"
       ],
       "type": "object"
     },

@@ -11,7 +11,7 @@ replicaCount: 1
 revisionHistoryLimit: 3
 
 app:
-  port: 8080
+  address: ""  # defaults to :<service.port>
 
 command: []
 args: []
