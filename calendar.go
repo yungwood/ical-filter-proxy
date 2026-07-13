@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"log/slog"
 	"strings"
 
@@ -34,23 +35,32 @@ type Calendar struct {
 	Public      bool
 	Token       string
 	FeedURL     string
-	Filters     []Filter
+	Filters     []CompiledFilter
 }
 
-func (config Config) RuntimeConfig() RuntimeConfig {
+func (config Config) RuntimeConfig() (RuntimeConfig, error) {
 	calendars := make([]Calendar, 0, len(config.Calendars))
 	for _, calendarConfig := range config.Calendars {
+		filters := make([]CompiledFilter, 0, len(calendarConfig.Filters))
+		for filterIndex, filter := range calendarConfig.Filters {
+			compiledFilter, err := filter.compile()
+			if err != nil {
+				return RuntimeConfig{}, fmt.Errorf("calendar %q filter %d: %w", calendarConfig.Name, filterIndex, err)
+			}
+			filters = append(filters, compiledFilter)
+		}
+
 		calendars = append(calendars, Calendar{
 			Name:        calendarConfig.Name,
 			PublishName: calendarConfig.PublishName,
 			Public:      calendarConfig.Public,
 			Token:       calendarConfig.Token,
 			FeedURL:     calendarConfig.FeedURL,
-			Filters:     calendarConfig.Filters,
+			Filters:     filters,
 		})
 	}
 
-	return RuntimeConfig{Calendars: calendars}
+	return RuntimeConfig{Calendars: calendars}, nil
 }
 
 // Downloads iCal feed from the URL and applies filtering rules

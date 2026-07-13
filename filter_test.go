@@ -129,7 +129,7 @@ func TestFilterMatchesEvent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			filter := Filter{Match: tt.match}
+			filter := mustCompileFilter(t, Filter{Match: tt.match})
 			got := filter.matchesEvent(*tt.event)
 			if got != tt.want {
 				t.Fatalf("matchesEvent() = %v, want %v", got, tt.want)
@@ -154,35 +154,35 @@ func TestEventStringPropertyMatches(t *testing.T) {
 		name     string
 		event    *ics.VEvent
 		property ics.ComponentProperty
-		rule     StringMatchRule
+		rule     CompiledStringMatchRule
 		want     bool
 	}{
 		{
 			name:     "empty rule matches",
 			event:    testEvent("team calendar event"),
 			property: ics.ComponentPropertySummary,
-			rule:     StringMatchRule{},
+			rule:     mustCompileStringMatchRule(t, StringMatchRule{}),
 			want:     true,
 		},
 		{
 			name:     "property value matches",
 			event:    testEvent("team calendar event"),
 			property: ics.ComponentPropertySummary,
-			rule:     StringMatchRule{Contains: "calendar"},
+			rule:     mustCompileStringMatchRule(t, StringMatchRule{Contains: "calendar"}),
 			want:     true,
 		},
 		{
 			name:     "property value mismatch",
 			event:    testEvent("team calendar event"),
 			property: ics.ComponentPropertySummary,
-			rule:     StringMatchRule{Contains: "holiday"},
+			rule:     mustCompileStringMatchRule(t, StringMatchRule{Contains: "holiday"}),
 			want:     false,
 		},
 		{
 			name:     "missing property matches empty rule",
 			event:    testEvent("team calendar event"),
 			property: ics.ComponentPropertyDescription,
-			rule:     StringMatchRule{Null: true},
+			rule:     mustCompileStringMatchRule(t, StringMatchRule{Null: true}),
 			want:     true,
 		},
 	}
@@ -311,7 +311,7 @@ func TestFilterTransformEvent(t *testing.T) {
 				event.SetURL("https://example.com/original")
 			})
 
-			filter := Filter{Transform: tt.transform}
+			filter := mustCompileFilter(t, Filter{Transform: tt.transform})
 			filter.transformEvent(event)
 
 			for property, want := range tt.want {
@@ -336,4 +336,37 @@ func testEvent(summary string, options ...func(*ics.VEvent)) *ics.VEvent {
 	}
 
 	return event
+}
+
+func mustCompileFilter(t *testing.T, filter Filter) CompiledFilter {
+	t.Helper()
+
+	compiledFilter, err := filter.compile()
+	if err != nil {
+		t.Fatalf("compile() returned error: %v", err)
+	}
+
+	return compiledFilter
+}
+
+func mustCompileFilters(t *testing.T, filters []Filter) []CompiledFilter {
+	t.Helper()
+
+	compiledFilters := make([]CompiledFilter, 0, len(filters))
+	for _, filter := range filters {
+		compiledFilters = append(compiledFilters, mustCompileFilter(t, filter))
+	}
+
+	return compiledFilters
+}
+
+func mustCompileStringMatchRule(t *testing.T, rule StringMatchRule) CompiledStringMatchRule {
+	t.Helper()
+
+	compiledRule, err := rule.compile()
+	if err != nil {
+		t.Fatalf("compile() returned error: %v", err)
+	}
+
+	return compiledRule
 }

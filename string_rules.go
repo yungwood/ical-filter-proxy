@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log/slog"
 	"regexp"
 	"strings"
 )
@@ -26,49 +25,83 @@ func (smr StringMatchRule) hasConditions() bool {
 }
 
 func (smr StringMatchRule) validate() error {
+	_, err := smr.compile()
+	return err
+}
+
+func (smr StringMatchRule) compile() (CompiledStringMatchRule, error) {
+	rule := CompiledStringMatchRule{
+		Null:     smr.Null,
+		Contains: smr.Contains,
+		Prefix:   smr.Prefix,
+		Suffix:   smr.Suffix,
+	}
+
 	if smr.RegexMatch == "" {
-		return nil
+		return rule, nil
 	}
 
-	if _, err := regexp.Compile(smr.RegexMatch); err != nil {
-		return fmt.Errorf("invalid regex %q: %w", smr.RegexMatch, err)
+	regex, err := regexp.Compile(smr.RegexMatch)
+	if err != nil {
+		return rule, fmt.Errorf("invalid regex %q: %w", smr.RegexMatch, err)
 	}
+	rule.Regex = regex
 
-	return nil
+	return rule, nil
 }
 
 // Returns true if a given string (data) matches ALL StringMatchRule conditions
 func (smr StringMatchRule) matchesString(data string) bool {
+	rule, err := smr.compile()
+	if err != nil {
+		return false
+	}
+
+	return rule.matchesString(data)
+}
+
+type CompiledStringMatchRule struct {
+	Null     bool
+	Contains string
+	Prefix   string
+	Suffix   string
+	Regex    *regexp.Regexp
+}
+
+func (rule CompiledStringMatchRule) hasConditions() bool {
+	return rule.Null ||
+		rule.Contains != "" ||
+		rule.Prefix != "" ||
+		rule.Suffix != "" ||
+		rule.Regex != nil
+}
+
+func (rule CompiledStringMatchRule) matchesString(data string) bool {
 	// check null if set and don't process further - this condition can only be met on its own
-	if smr.Null {
+	if rule.Null {
 		return data == ""
 	}
 	// check contains if set
-	if smr.Contains != "" {
-		if data == "" || !strings.Contains(data, smr.Contains) {
+	if rule.Contains != "" {
+		if data == "" || !strings.Contains(data, rule.Contains) {
 			return false
 		}
 	}
 	// check prefix if set
-	if smr.Prefix != "" {
-		if data == "" || !strings.HasPrefix(data, smr.Prefix) {
+	if rule.Prefix != "" {
+		if data == "" || !strings.HasPrefix(data, rule.Prefix) {
 			return false
 		}
 	}
 	// check suffix if set
-	if smr.Suffix != "" {
-		if data == "" || !strings.HasSuffix(data, smr.Suffix) {
+	if rule.Suffix != "" {
+		if data == "" || !strings.HasSuffix(data, rule.Suffix) {
 			return false
 		}
 	}
 	// check regex match if set
-	if smr.RegexMatch != "" {
-		re, err := regexp.Compile(smr.RegexMatch)
-		if err != nil {
-			slog.Warn("error processing regex rule", "value", smr.RegexMatch)
-			return false // regex error is considered a failure to match
-		}
-		match := re.MatchString(data)
+	if rule.Regex != nil {
+		match := rule.Regex.MatchString(data)
 		if !match {
 			return false // regex didn't match
 		}
