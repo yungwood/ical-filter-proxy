@@ -362,6 +362,31 @@ func TestStringTransformRuleHasActions(t *testing.T) {
 			rule: StringTransformRule{Suffix: " new"},
 			want: true,
 		},
+		{
+			name: "trim prefix action",
+			rule: StringTransformRule{TrimPrefix: "old "},
+			want: true,
+		},
+		{
+			name: "trim suffix action",
+			rule: StringTransformRule{TrimSuffix: " old"},
+			want: true,
+		},
+		{
+			name: "replace text action with old",
+			rule: StringTransformRule{ReplaceText: ReplaceTextRule{Old: "old"}},
+			want: true,
+		},
+		{
+			name: "replace text action with new",
+			rule: StringTransformRule{ReplaceText: ReplaceTextRule{New: "new"}},
+			want: true,
+		},
+		{
+			name: "replace text action with all",
+			rule: StringTransformRule{ReplaceText: ReplaceTextRule{All: true}},
+			want: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -369,6 +394,44 @@ func TestStringTransformRuleHasActions(t *testing.T) {
 			got := tt.rule.hasActions()
 			if got != tt.want {
 				t.Fatalf("hasActions() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestStringTransformRuleValidate(t *testing.T) {
+	tests := []struct {
+		name    string
+		rule    StringTransformRule
+		wantErr bool
+	}{
+		{
+			name:    "empty rule",
+			rule:    StringTransformRule{},
+			wantErr: false,
+		},
+		{
+			name:    "replace text with old",
+			rule:    StringTransformRule{ReplaceText: ReplaceTextRule{Old: "old"}},
+			wantErr: false,
+		},
+		{
+			name:    "replace text with empty old and new value",
+			rule:    StringTransformRule{ReplaceText: ReplaceTextRule{New: "new"}},
+			wantErr: true,
+		},
+		{
+			name:    "replace text with empty old and all",
+			rule:    StringTransformRule{ReplaceText: ReplaceTextRule{All: true}},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.rule.validate()
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -416,6 +479,62 @@ func TestApplyStringTransform(t *testing.T) {
 			value: "",
 			rule:  StringTransformRule{Suffix: "suffix"},
 			want:  "suffix",
+		},
+		{
+			name:  "trim_prefix removes matching prefix",
+			value: "prefix - calendar event",
+			rule:  StringTransformRule{TrimPrefix: "prefix - "},
+			want:  "calendar event",
+		},
+		{
+			name:  "trim_prefix leaves non-matching value",
+			value: "calendar event",
+			rule:  StringTransformRule{TrimPrefix: "prefix - "},
+			want:  "calendar event",
+		},
+		{
+			name:  "trim_suffix removes matching suffix",
+			value: "calendar event - suffix",
+			rule:  StringTransformRule{TrimSuffix: " - suffix"},
+			want:  "calendar event",
+		},
+		{
+			name:  "trim_suffix leaves non-matching value",
+			value: "calendar event",
+			rule:  StringTransformRule{TrimSuffix: " - suffix"},
+			want:  "calendar event",
+		},
+		{
+			name:  "replace_text replaces first occurrence",
+			value: "team event event",
+			rule: StringTransformRule{
+				ReplaceText: ReplaceTextRule{Old: "event", New: "shift"},
+			},
+			want: "team shift event",
+		},
+		{
+			name:  "replace_text replaces all occurrences",
+			value: "team event event",
+			rule: StringTransformRule{
+				ReplaceText: ReplaceTextRule{Old: "event", New: "shift", All: true},
+			},
+			want: "team shift shift",
+		},
+		{
+			name:  "new transforms compose before prefix and suffix",
+			value: "prefix - team event event - suffix",
+			rule: StringTransformRule{
+				TrimPrefix: "prefix - ",
+				TrimSuffix: " - suffix",
+				ReplaceText: ReplaceTextRule{
+					Old: "event",
+					New: "shift",
+					All: true,
+				},
+				Prefix: "[",
+				Suffix: "]",
+			},
+			want: "[team shift shift]",
 		},
 	}
 

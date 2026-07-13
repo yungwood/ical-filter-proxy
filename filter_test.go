@@ -301,6 +301,31 @@ func TestFilterTransformEvent(t *testing.T) {
 				ics.ComponentPropertyUrl:         "https://example.com/original?tracked=true",
 			},
 		},
+		{
+			name: "rich string transforms fields",
+			transform: EventTransformRules{
+				Summary: StringTransformRule{
+					TrimPrefix:  "old ",
+					TrimSuffix:  " summary",
+					ReplaceText: ReplaceTextRule{Old: "original", New: "new"},
+				},
+				Description: StringTransformRule{
+					TrimPrefix: "old ",
+				},
+				Location: StringTransformRule{
+					TrimSuffix: " location",
+				},
+				URL: StringTransformRule{
+					ReplaceText: ReplaceTextRule{Old: "/original", New: "/new"},
+				},
+			},
+			want: map[ics.ComponentProperty]string{
+				ics.ComponentPropertySummary:     "new",
+				ics.ComponentPropertyDescription: "original description",
+				ics.ComponentPropertyLocation:    "original",
+				ics.ComponentPropertyUrl:         "https://example.com/new",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -324,6 +349,22 @@ func TestFilterTransformEvent(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestFilterConfigCompileRejectsInvalidTransform(t *testing.T) {
+	_, err := (FilterConfig{
+		Transform: EventTransformRules{
+			Description: StringTransformRule{
+				ReplaceText: ReplaceTextRule{New: "new"},
+			},
+		},
+	}).compile()
+	if err == nil {
+		t.Fatal("compile() returned nil error")
+	}
+	if got, want := err.Error(), "description: replace_text.old must not be empty"; got != want {
+		t.Fatalf("error = %q, want %q", got, want)
 	}
 }
 

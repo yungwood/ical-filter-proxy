@@ -163,17 +163,41 @@ func (rule StringMatchRule) matchesString(data string) bool {
 
 // StringTransformRule defines changes for VEvent properties with string values
 type StringTransformRule struct {
-	Replace string `yaml:"replace"`
-	Remove  bool   `yaml:"remove"`
-	Prefix  string `yaml:"prefix"`
-	Suffix  string `yaml:"suffix"`
+	Replace     string          `yaml:"replace"`
+	Remove      bool            `yaml:"remove"`
+	TrimPrefix  string          `yaml:"trim_prefix"`
+	TrimSuffix  string          `yaml:"trim_suffix"`
+	ReplaceText ReplaceTextRule `yaml:"replace_text"`
+	Prefix      string          `yaml:"prefix"`
+	Suffix      string          `yaml:"suffix"`
+}
+
+type ReplaceTextRule struct {
+	Old string `yaml:"old"`
+	New string `yaml:"new"`
+	All bool   `yaml:"all"`
 }
 
 func (str StringTransformRule) hasActions() bool {
 	return str.Replace != "" ||
 		str.Remove ||
+		str.TrimPrefix != "" ||
+		str.TrimSuffix != "" ||
+		str.ReplaceText.hasActions() ||
 		str.Prefix != "" ||
 		str.Suffix != ""
+}
+
+func (str StringTransformRule) validate() error {
+	if str.ReplaceText.hasActions() && str.ReplaceText.Old == "" {
+		return fmt.Errorf("replace_text.old must not be empty")
+	}
+
+	return nil
+}
+
+func (rule ReplaceTextRule) hasActions() bool {
+	return rule.Old != "" || rule.New != "" || rule.All
 }
 
 func applyStringTransform(value string, rule StringTransformRule) string {
@@ -182,6 +206,19 @@ func applyStringTransform(value string, rule StringTransformRule) string {
 	}
 	if rule.Replace != "" {
 		return rule.Replace
+	}
+	if rule.TrimPrefix != "" {
+		value = strings.TrimPrefix(value, rule.TrimPrefix)
+	}
+	if rule.TrimSuffix != "" {
+		value = strings.TrimSuffix(value, rule.TrimSuffix)
+	}
+	if rule.ReplaceText.Old != "" {
+		n := 1
+		if rule.ReplaceText.All {
+			n = -1
+		}
+		value = strings.Replace(value, rule.ReplaceText.Old, rule.ReplaceText.New, n)
 	}
 	if rule.Prefix != "" {
 		value = rule.Prefix + value
