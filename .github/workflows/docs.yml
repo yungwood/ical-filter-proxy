@@ -1,0 +1,45 @@
+name: docs
+
+on:
+  push:
+    branches:
+      - "*"
+    paths:
+      - ".github/workflows/docs.yml"
+      - "docs/**"
+  pull_request:
+    paths:
+      - ".github/workflows/docs.yml"
+      - "docs/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    name: docs
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
