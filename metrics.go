@@ -166,14 +166,17 @@ func (m *prometheusMetrics) middleware(listener string, next http.Handler) http.
 			statusCode = http.StatusOK
 		}
 
+		route := routeMetricLabel(listener, r.URL.Path)
 		labels := prometheus.Labels{
 			"listener": listener,
-			"route":    routeMetricLabel(listener, r.URL.Path),
+			"route":    route,
 			"method":   r.Method,
 			"status":   strconv.Itoa(statusCode),
 		}
 		m.requestsTotal.With(labels).Inc()
-		m.requestDuration.With(labels).Observe(time.Since(startedAt).Seconds())
+		if observeHTTPDuration(route) {
+			m.requestDuration.With(labels).Observe(time.Since(startedAt).Seconds())
+		}
 
 		if calendarName, ok := calendarNameFromPath(r.URL.Path); ok && m.calendarMetricsEnabled {
 			calendarLabels := prometheus.Labels{
@@ -212,6 +215,10 @@ func (m *prometheusMetrics) instrumentFetch(calendarName string, fetch calendarF
 
 		return feed, err
 	}
+}
+
+func observeHTTPDuration(route string) bool {
+	return route == "/calendars/{calendar}/feed"
 }
 
 func routeMetricLabel(listener string, path string) string {
