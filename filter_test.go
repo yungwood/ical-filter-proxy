@@ -149,6 +149,54 @@ func TestEventStringProperty(t *testing.T) {
 	}
 }
 
+func TestEventStringPropertyMatches(t *testing.T) {
+	tests := []struct {
+		name     string
+		event    *ics.VEvent
+		property ics.ComponentProperty
+		rule     StringMatchRule
+		want     bool
+	}{
+		{
+			name:     "empty rule matches",
+			event:    testEvent("team calendar event"),
+			property: ics.ComponentPropertySummary,
+			rule:     StringMatchRule{},
+			want:     true,
+		},
+		{
+			name:     "property value matches",
+			event:    testEvent("team calendar event"),
+			property: ics.ComponentPropertySummary,
+			rule:     StringMatchRule{Contains: "calendar"},
+			want:     true,
+		},
+		{
+			name:     "property value mismatch",
+			event:    testEvent("team calendar event"),
+			property: ics.ComponentPropertySummary,
+			rule:     StringMatchRule{Contains: "holiday"},
+			want:     false,
+		},
+		{
+			name:     "missing property matches empty rule",
+			event:    testEvent("team calendar event"),
+			property: ics.ComponentPropertyDescription,
+			rule:     StringMatchRule{Null: true},
+			want:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := eventStringPropertyMatches(*tt.event, tt.property, tt.rule)
+			if got != tt.want {
+				t.Fatalf("eventStringPropertyMatches() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestFilterTransformEvent(t *testing.T) {
 	tests := []struct {
 		name      string

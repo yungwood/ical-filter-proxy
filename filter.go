@@ -27,38 +27,16 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 		return false // never match if VEvent has no summary
 	}
 
-	// Check Summary filters against VEvent
-	if filter.Match.Summary.hasConditions() {
-		if !filter.Match.Summary.matchesString(eventSummary.Value) {
+	stringMatches := []eventStringMatch{
+		{property: ics.ComponentPropertySummary, name: "summary", rule: filter.Match.Summary},
+		{property: ics.ComponentPropertyDescription, name: "description", rule: filter.Match.Description},
+		{property: ics.ComponentPropertyLocation, name: "location", rule: filter.Match.Location},
+		{property: ics.ComponentPropertyUrl, name: "url", rule: filter.Match.URL},
+	}
+	for _, match := range stringMatches {
+		if !eventStringPropertyMatches(event, match.property, match.rule) {
+			slog.Debug("Event property does not match filter conditions", "property", match.name, "event_summary", eventSummary.Value, "filter", filter.Description)
 			return false
-		}
-	}
-
-	// Check Description filters against VEvent
-	if filter.Match.Description.hasConditions() {
-		eventDescriptionValue := eventStringProperty(event, ics.ComponentPropertyDescription)
-		if !filter.Match.Description.matchesString(eventDescriptionValue) {
-			slog.Debug("Event Description does not match filter conditions", "event_summary", eventSummary.Value, "filter", filter.Description)
-			return false // event doesn't match
-		}
-	}
-
-	// Check Location filters against VEvent
-	if filter.Match.Location.hasConditions() {
-		eventLocationValue := eventStringProperty(event, ics.ComponentPropertyLocation)
-		if !filter.Match.Location.matchesString(eventLocationValue) {
-			slog.Debug("Event Location does not match filter conditions", "event_summary", eventSummary.Value, "filter", filter.Description)
-			return false // event doesn't match
-
-		}
-	}
-
-	// Check URL filters against VEvent
-	if filter.Match.URL.hasConditions() {
-		eventURLValue := eventStringProperty(event, ics.ComponentPropertyUrl)
-		if !filter.Match.URL.matchesString(eventURLValue) {
-			slog.Debug("Event URL does not match filter conditions", "event_summary", eventSummary.Value, "filter", filter.Description)
-			return false // event doesn't match
 		}
 	}
 
@@ -109,6 +87,20 @@ type EventTransformRules struct {
 	Description StringTransformRule `yaml:"description"`
 	Location    StringTransformRule `yaml:"location"`
 	URL         StringTransformRule `yaml:"url"`
+}
+
+type eventStringMatch struct {
+	property ics.ComponentProperty
+	name     string
+	rule     StringMatchRule
+}
+
+func eventStringPropertyMatches(event ics.VEvent, property ics.ComponentProperty, rule StringMatchRule) bool {
+	if !rule.hasConditions() {
+		return true
+	}
+
+	return rule.matchesString(eventStringProperty(event, property))
 }
 
 func eventStringProperty(event ics.VEvent, property ics.ComponentProperty) string {
