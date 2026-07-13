@@ -238,6 +238,15 @@ The following transformations are available for strings:
 
 You can load `feed_url` and `token` values from files by specifying the `feed_url_file` and `token_file` fields in the calendar configuration. When these fields are set, any values directly provided for `feed_url` or `token` are ignored.
 
+You can also reference environment variables from `feed_url` and `token` by setting the field value to an exact `${ENV_NAME}` reference. Missing or empty environment variables fail config loading. Partial string expansion is not supported, and `feed_url_file` / `token_file` still take precedence.
+
+```yaml
+calendars:
+  - name: private
+    token: "${CALENDAR_TOKEN}"
+    feed_url: "${CALENDAR_FEED_URL}"
+```
+
 For example:
 
 ```yaml
