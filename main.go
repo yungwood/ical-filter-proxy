@@ -61,11 +61,14 @@ func main() {
 
 	// load configuration
 	slog.Debug("reading config", "configFile", configFile)
-	var config Config
-	if !config.LoadConfig(configFile) {
+	config, err := LoadConfig(configFile)
+	if err != nil {
+		slog.Error("Invalid configuration", "error", err)
 		os.Exit(1) // fail if config is not valid
 	}
 	slog.Debug("loaded config")
+
+	logConfigWarnings(config)
 
 	runtimeConfig, err := config.Compile()
 	if err != nil {
@@ -94,4 +97,15 @@ func main() {
 		os.Exit(1)
 	}
 
+}
+
+func logConfigWarnings(config Config) {
+	for _, calendar := range config.Calendars {
+		if calendar.Public {
+			slog.Warn("Calendar has no token set. Authentication will be disabled", "calendar", calendar.Name)
+		}
+		if len(calendar.Filters) == 0 {
+			slog.Warn("Calendar has no filters and will be proxy-only", "calendar", calendar.Name)
+		}
+	}
 }
