@@ -196,6 +196,85 @@ func TestMetricsMiddlewareLabelsPublicMetricsPathAsUnknown(t *testing.T) {
 	}
 }
 
+func TestMetricsMiddlewareSkipsDurationForManagementRoutes(t *testing.T) {
+	tests := []struct {
+		name     string
+		listener string
+		target   string
+		route    string
+	}{
+		{
+			name:     "liveness",
+			listener: "management",
+			target:   "/liveness",
+			route:    "/liveness",
+		},
+		{
+			name:     "readiness",
+			listener: "management",
+			target:   "/readiness",
+			route:    "/readiness",
+		},
+		{
+			name:     "metrics",
+			listener: "management",
+			target:   "/metrics",
+			route:    "/metrics",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			metrics := newPrometheusMetrics(false)
+			handler := metrics.middleware(tt.listener, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			req := testRequest(t, tt.target)
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			if rr.Code != http.StatusOK {
+				t.Fatalf("status = %d, want %d", rr.Code, http.StatusOK)
+			}
+
+			got := scrapeMetrics(t, metrics)
+			counterSample := `ical_filter_proxy_http_requests_total{listener="` + tt.listener + `",method="GET",route="` + tt.route + `",status="200"} 1`
+			if !strings.Contains(got, counterSample) {
+				t.Fatalf("metrics output = %q, want counter sample %q", got, counterSample)
+			}
+
+			durationSample := `ical_filter_proxy_http_request_duration_seconds_bucket{listener="` + tt.listener + `",method="GET",route="` + tt.route + `",status="200"`
+			if strings.Contains(got, durationSample) {
+				t.Fatalf("metrics output = %q, did not want duration sample %q", got, durationSample)
+			}
+		})
+	}
+}
+
+func TestMetricsMiddlewareSkipsDurationForUnknownRoutes(t *testing.T) {
+	metrics := newPrometheusMetrics(false)
+	handler := metrics.middleware("public", http.NotFoundHandler())
+
+	req := testRequest(t, "/unknown")
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusNotFound)
+	}
+
+	got := scrapeMetrics(t, metrics)
+	if !strings.Contains(got, `ical_filter_proxy_http_requests_total{listener="public",method="GET",route="unknown",status="404"} 1`) {
+		t.Fatalf("metrics output = %q, want unknown route counter", got)
+	}
+	if strings.Contains(got, `ical_filter_proxy_http_request_duration_seconds_bucket{listener="public",method="GET",route="unknown",status="404"`) {
+		t.Fatalf("metrics output = %q, did not want unknown route duration bucket", got)
+	}
+}
+
 func TestMetricsInstrumentFetchRecordsSuccess(t *testing.T) {
 	metrics := newPrometheusMetrics(false)
 	fetch := metrics.instrumentFetch("private", func(context.Context) ([]byte, error) {
