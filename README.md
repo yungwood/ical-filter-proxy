@@ -57,8 +57,13 @@ You can deploy iCal Filter Proxy using the helm chart from [`yungwood/helm-chart
 
 ```bash
 helm repo add yungwood https://yungwood.github.io/helm-charts/
-helm install --name your-release yungwood/ical-filter-proxy
+helm install your-release yungwood/ical-filter-proxy
 ```
+
+The source chart lives in [`chart/`](./chart). Chart changes are linted with
+[`chart-testing`](https://github.com/helm/chart-testing) actions.
+Tagged releases publish the raw chart source to [`yungwood/helm-charts`](https://github.com/yungwood/helm-charts)
+by opening a PR with the chart `version` and `appVersion` set from the tag.
 
 ### Build from source
 
