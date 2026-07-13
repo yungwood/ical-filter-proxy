@@ -51,7 +51,7 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 	// Get event Summary - only used for debug logging
 	eventSummary := event.GetProperty(ics.ComponentPropertySummary)
 	if eventSummary == nil {
-		slog.Warn("Unable to process event summary. Event will be dropped")
+		slog.Debug("event missing summary; dropping event")
 		return false // never match if VEvent has no summary
 	}
 
@@ -63,13 +63,13 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 	}
 	for _, match := range stringMatches {
 		if !eventStringPropertyMatches(event, match.property, match.rule) {
-			slog.Debug("Event property does not match filter conditions", "property", match.name, "event_summary", eventSummary.Value, "filter", filter.Description)
+			slog.Debug("event property does not match filter conditions", "property", match.name, "event_summary", eventSummary.Value, "filter", filter.Description)
 			return false
 		}
 	}
 
 	// VEvent must match if we get here
-	slog.Debug("Event matches filter conditions", "event_summary", eventSummary.Value, "filter", filter.Description)
+	slog.Debug("event matches filter conditions", "event_summary", eventSummary.Value, "filter", filter.Description)
 	return true
 }
 

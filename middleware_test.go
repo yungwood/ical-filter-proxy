@@ -165,7 +165,7 @@ func TestRecoveryMiddlewareReturnsInternalServerError(t *testing.T) {
 	}
 
 	got := logOutput.String()
-	if !strings.Contains(got, "Recovered panic while processing HTTP request") {
+	if !strings.Contains(got, "recovered panic while processing http request") {
 		t.Fatalf("log output = %q, want recovery log", got)
 	}
 	if !strings.Contains(got, "panic=boom") {

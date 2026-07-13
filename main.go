@@ -41,10 +41,10 @@ func main() {
 	slog.SetDefault(logger)
 
 	// load configuration
-	slog.Debug("reading config", "configFile", options.configFile)
+	slog.Debug("reading config", "config_file", options.configFile)
 	config, err := LoadConfig(options.configFile)
 	if err != nil {
-		slog.Error("Invalid configuration", "error", err)
+		slog.Error("invalid configuration", "error", err)
 		os.Exit(1) // fail if config is not valid
 	}
 	slog.Debug("loaded config")
@@ -53,7 +53,7 @@ func main() {
 
 	runtimeConfig, err := config.Compile()
 	if err != nil {
-		slog.Error("Invalid configuration", "error", err)
+		slog.Error("invalid configuration", "error", err)
 		os.Exit(1)
 	}
 
@@ -74,7 +74,7 @@ func main() {
 
 	servers := buildHTTPServers(runtimeConfig, options.address, options.managementAddress, metrics)
 	if err := runHTTPServers(servers...); err != nil {
-		slog.Error("Error running web server", "error", err)
+		slog.Error("web server failed", "error", err)
 		os.Exit(1)
 	}
 
@@ -83,10 +83,10 @@ func main() {
 func logConfigWarnings(config Config) {
 	for _, calendar := range config.Calendars {
 		if calendar.Public {
-			slog.Warn("Calendar has no token set. Authentication will be disabled", "calendar", calendar.Name)
+			slog.Warn("calendar has no token set; authentication disabled", "calendar", calendar.Name)
 		}
 		if len(calendar.Filters) == 0 {
-			slog.Warn("Calendar has no filters and will be proxy-only", "calendar", calendar.Name)
+			slog.Info("calendar has no filters; proxy-only mode enabled", "calendar", calendar.Name)
 		}
 	}
 }
