@@ -1,0 +1,55 @@
+name: helm
+
+on:
+  push:
+    branches:
+      - "*"
+    paths:
+      - ".github/workflows/helm.yml"
+      - "chart/**"
+  pull_request:
+    paths:
+      - ".github/workflows/helm.yml"
+      - "chart/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.7.0
+
+      - name: Lint chart
+        run: ct lint --charts chart --check-version-increment=false
+
+  install:
+    name: install
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.7.0
+
+      - name: Set up kind
+        uses: helm/kind-action@v1.12.0
+
+      - name: Install chart
+        run: ct install --charts chart --helm-extra-set-args "--set image.tag=main"
