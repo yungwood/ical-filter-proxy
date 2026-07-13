@@ -28,6 +28,7 @@ func main() {
 		listenPort     int
 		validateConfig bool
 		printVersion   bool
+		metricsEnabled bool
 	)
 	flag.StringVar(&configFile, "config", "config.yaml", "config file")
 	flag.BoolVar(&debugLogging, "debug", false, "enable debug logging")
@@ -35,6 +36,7 @@ func main() {
 	flag.BoolVar(&jsonLogging, "json", false, "output logging in JSON format")
 	flag.IntVar(&listenPort, "port", 8080, "listening port for api")
 	flag.BoolVar(&validateConfig, "validate", false, "validate config and exit")
+	flag.BoolVar(&metricsEnabled, "metrics", false, "enable prometheus metrics endpoint")
 	flag.Parse()
 
 	// print version and exit
@@ -77,11 +79,21 @@ func main() {
 
 	mux := http.NewServeMux()
 	registerPublicRoutes(mux, config)
-	registerInternalRoutes(mux)
+	var metrics *prometheusMetrics
+	if metricsEnabled {
+		metrics = newPrometheusMetrics()
+	}
+	registerInternalRoutes(mux, metrics)
+
+	handler := recoveryMiddleware(mux)
+	if metrics != nil {
+		handler = metrics.middleware(handler)
+	}
+	handler = requestLoggingMiddleware(handler)
 
 	server := &http.Server{
 		Addr:              ":" + strconv.Itoa(listenPort),
-		Handler:           requestLoggingMiddleware(recoveryMiddleware(mux)),
+		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      30 * time.Second,

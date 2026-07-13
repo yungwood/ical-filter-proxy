@@ -43,7 +43,7 @@ func TestRegisterInternalRoutesRegistersHealthEndpoints(t *testing.T) {
 	}
 
 	mux := http.NewServeMux()
-	registerInternalRoutes(mux)
+	registerInternalRoutes(mux, nil)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -71,7 +71,7 @@ func TestPublicAndInternalRoutesCanUseSeparateMuxes(t *testing.T) {
 	})
 
 	internalMux := http.NewServeMux()
-	registerInternalRoutes(internalMux)
+	registerInternalRoutes(internalMux, nil)
 
 	req := testRequest(t, "/liveness")
 	rr := httptest.NewRecorder()
@@ -87,5 +87,33 @@ func TestPublicAndInternalRoutesCanUseSeparateMuxes(t *testing.T) {
 
 	if rr.Code != http.StatusNotFound {
 		t.Fatalf("internal mux status = %d, want %d", rr.Code, http.StatusNotFound)
+	}
+}
+
+func TestRegisterInternalRoutesMetricsDisabled(t *testing.T) {
+	mux := http.NewServeMux()
+	registerInternalRoutes(mux, nil)
+
+	req := testRequest(t, "/metrics")
+	rr := httptest.NewRecorder()
+
+	mux.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusNotFound)
+	}
+}
+
+func TestRegisterInternalRoutesMetricsEnabled(t *testing.T) {
+	mux := http.NewServeMux()
+	registerInternalRoutes(mux, newPrometheusMetrics())
+
+	req := testRequest(t, "/metrics")
+	rr := httptest.NewRecorder()
+
+	mux.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusOK)
 	}
 }

@@ -23,7 +23,7 @@
 
         src = ./.;
 
-        vendorHash = "sha256-BnE9STifiZ+K6LPfCUS7ZoO1Izzv7UPF1hsInzTm4Fc=";
+        vendorHash = "sha256-OKOfPkssluK9uWE8BLZ9iyVpC1aLvQqzm6NyRyUYQY0=";
 
         ldflags = [
           "-s"

@@ -386,6 +386,12 @@ in {
       description = "Output logging in JSON format.";
     };
 
+    metrics = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Enable the Prometheus metrics endpoint at /metrics.";
+    };
+
     extraArgs = mkOption {
       type = types.listOf types.str;
       default = [];
@@ -463,6 +469,7 @@ in {
             ]
             ++ optional cfg.debug "-debug"
             ++ optional cfg.jsonLogging "-json"
+            ++ optional cfg.metrics "-metrics"
             ++ cfg.extraArgs;
         in "${lib.escapeShellArgs args}";
       };
