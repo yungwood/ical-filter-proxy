@@ -45,7 +45,7 @@ func buildHTTPHandler(listener string, handler http.Handler, metrics *prometheus
 	return requestLoggingMiddleware(handler)
 }
 
-func buildHTTPServers(config Config, listenPort int, managementAddress string, metrics *prometheusMetrics) []managedHTTPServer {
+func buildHTTPServers(config RuntimeConfig, listenPort int, managementAddress string, metrics *prometheusMetrics) []managedHTTPServer {
 	publicMux := http.NewServeMux()
 	registerPublicRoutes(publicMux, config, metrics)
 

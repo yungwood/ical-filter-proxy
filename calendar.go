@@ -24,12 +24,41 @@ type CalendarConfig struct {
 	Filters     []Filter `yaml:"filters"`
 }
 
+type RuntimeConfig struct {
+	Calendars []Calendar
+}
+
+type Calendar struct {
+	Name        string
+	PublishName string
+	Public      bool
+	Token       string
+	FeedURL     string
+	Filters     []Filter
+}
+
+func (config Config) RuntimeConfig() RuntimeConfig {
+	calendars := make([]Calendar, 0, len(config.Calendars))
+	for _, calendarConfig := range config.Calendars {
+		calendars = append(calendars, Calendar{
+			Name:        calendarConfig.Name,
+			PublishName: calendarConfig.PublishName,
+			Public:      calendarConfig.Public,
+			Token:       calendarConfig.Token,
+			FeedURL:     calendarConfig.FeedURL,
+			Filters:     calendarConfig.Filters,
+		})
+	}
+
+	return RuntimeConfig{Calendars: calendars}
+}
+
 // Downloads iCal feed from the URL and applies filtering rules
-func (calendarConfig CalendarConfig) fetch(ctx context.Context) ([]byte, error) {
+func (calendar Calendar) fetch(ctx context.Context) ([]byte, error) {
 
 	// get the iCal feed
-	slog.Debug("Fetching iCal feed", "url", redactURL(calendarConfig.FeedURL))
-	feedData, err := fetchUpstreamCalendar(ctx, calendarConfig.FeedURL)
+	slog.Debug("Fetching iCal feed", "url", redactURL(calendar.FeedURL))
+	feedData, err := fetchUpstreamCalendar(ctx, calendar.FeedURL)
 	if err != nil {
 		return nil, err
 	}
@@ -40,21 +69,21 @@ func (calendarConfig CalendarConfig) fetch(ctx context.Context) ([]byte, error) 
 		return nil, err
 	}
 
-	if calendarConfig.PublishName != "" {
-		cal.SetName(calendarConfig.PublishName)
+	if calendar.PublishName != "" {
+		cal.SetName(calendar.PublishName)
 	}
 
 	// process filters
-	if len(calendarConfig.Filters) > 0 {
-		slog.Debug("Processing filters", "calendar", calendarConfig.Name)
+	if len(calendar.Filters) > 0 {
+		slog.Debug("Processing filters", "calendar", calendar.Name)
 		for _, event := range cal.Events() {
-			if !calendarConfig.ProcessEvent(event) {
+			if !calendar.ProcessEvent(event) {
 				cal.RemoveEvent(event.Id())
 			}
 		}
-		slog.Debug("Filter processing completed", "calendar", calendarConfig.Name)
+		slog.Debug("Filter processing completed", "calendar", calendar.Name)
 	} else {
-		slog.Debug("No filters to evaluate", "calendar", calendarConfig.Name)
+		slog.Debug("No filters to evaluate", "calendar", calendar.Name)
 	}
 
 	// serialize output
@@ -71,7 +100,7 @@ func (calendarConfig CalendarConfig) fetch(ctx context.Context) ([]byte, error) 
 // Evaluate the filters for a calendar against a given VEvent and
 // perform any transformations directly to the VEvent (pointer)
 // This function returns false if an event should be deleted
-func (calendarConfig CalendarConfig) ProcessEvent(event *ics.VEvent) bool {
+func (calendar Calendar) ProcessEvent(event *ics.VEvent) bool {
 
 	// Get the Summary (the "title" of the event)
 	// In case we cannot parse the event summary it should get dropped
@@ -81,7 +110,7 @@ func (calendarConfig CalendarConfig) ProcessEvent(event *ics.VEvent) bool {
 	}
 
 	// Iterate through the Filter rules
-	for id, filter := range calendarConfig.Filters {
+	for id, filter := range calendar.Filters {
 
 		// Does the filter match the event?
 		if filter.matchesEvent(*event) {

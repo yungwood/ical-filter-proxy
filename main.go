@@ -73,6 +73,8 @@ func main() {
 		os.Exit(0)
 	}
 
+	runtimeConfig := config.RuntimeConfig()
+
 	var metrics *prometheusMetrics
 	if metricsEnabled {
 		metrics = newPrometheusMetrics(calendarMetricsEnabled)
@@ -82,7 +84,7 @@ func main() {
 		slog.Warn("Prometheus metrics endpoint enabled on public listener; set -management-address to expose management endpoints separately")
 	}
 
-	servers := buildHTTPServers(config, listenPort, managementAddress, metrics)
+	servers := buildHTTPServers(runtimeConfig, listenPort, managementAddress, metrics)
 	if err := runHTTPServers(servers...); err != nil {
 		slog.Error("Error running web server", "error", err)
 		os.Exit(1)

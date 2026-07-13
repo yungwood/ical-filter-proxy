@@ -151,6 +151,56 @@ calendars:
 	}
 }
 
+func TestConfigRuntimeConfig(t *testing.T) {
+	config := Config{
+		Calendars: []CalendarConfig{
+			{
+				Name:        "private",
+				PublishName: "Published Calendar",
+				Public:      false,
+				Token:       "secret",
+				TokenFile:   "/run/secrets/token",
+				FeedURL:     "https://example.com/feed.ics",
+				FeedURLFile: "/run/secrets/feed-url",
+				Filters: []Filter{
+					{
+						Description: "rename event",
+						Transform: EventTransformRules{
+							Summary: StringTransformRule{Replace: "renamed"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	runtimeConfig := config.RuntimeConfig()
+
+	if len(runtimeConfig.Calendars) != 1 {
+		t.Fatalf("len(Calendars) = %d, want 1", len(runtimeConfig.Calendars))
+	}
+
+	calendar := runtimeConfig.Calendars[0]
+	if calendar.Name != "private" {
+		t.Fatalf("Name = %q, want private", calendar.Name)
+	}
+	if calendar.PublishName != "Published Calendar" {
+		t.Fatalf("PublishName = %q, want Published Calendar", calendar.PublishName)
+	}
+	if calendar.Public {
+		t.Fatal("Public = true, want false")
+	}
+	if calendar.Token != "secret" {
+		t.Fatalf("Token = %q, want secret", calendar.Token)
+	}
+	if calendar.FeedURL != "https://example.com/feed.ics" {
+		t.Fatalf("FeedURL = %q, want https://example.com/feed.ics", calendar.FeedURL)
+	}
+	if len(calendar.Filters) != 1 {
+		t.Fatalf("len(Filters) = %d, want 1", len(calendar.Filters))
+	}
+}
+
 func TestLoadConfigRejectsMissingSecretFiles(t *testing.T) {
 	tests := []struct {
 		name string

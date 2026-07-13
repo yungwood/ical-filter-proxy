@@ -8,8 +8,8 @@ import (
 
 func TestRegisterPublicRoutesRegistersCalendarFeeds(t *testing.T) {
 	mux := http.NewServeMux()
-	registerPublicRoutes(mux, Config{
-		Calendars: []CalendarConfig{
+	registerPublicRoutes(mux, RuntimeConfig{
+		Calendars: []Calendar{
 			{
 				Name:  "private",
 				Token: "secret",
@@ -61,8 +61,8 @@ func TestRegisterInternalRoutesRegistersHealthEndpoints(t *testing.T) {
 
 func TestPublicAndInternalRoutesCanUseSeparateMuxes(t *testing.T) {
 	publicMux := http.NewServeMux()
-	registerPublicRoutes(publicMux, Config{
-		Calendars: []CalendarConfig{
+	registerPublicRoutes(publicMux, RuntimeConfig{
+		Calendars: []Calendar{
 			{
 				Name:  "private",
 				Token: "secret",

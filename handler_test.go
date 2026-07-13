@@ -54,7 +54,7 @@ func TestTokenMatches(t *testing.T) {
 func TestCalendarFeedHandlerUnauthorized(t *testing.T) {
 	fetchCalled := false
 	handler := calendarFeedHandlerWithFetch(
-		CalendarConfig{Name: "private", Token: "secret"},
+		Calendar{Name: "private", Token: "secret"},
 		func(context.Context) ([]byte, error) {
 			fetchCalled = true
 			return []byte("should not be called"), nil
@@ -77,7 +77,7 @@ func TestCalendarFeedHandlerUnauthorized(t *testing.T) {
 
 func TestCalendarFeedHandlerSuccess(t *testing.T) {
 	handler := calendarFeedHandlerWithFetch(
-		CalendarConfig{Name: "private", Token: "secret"},
+		Calendar{Name: "private", Token: "secret"},
 		func(context.Context) ([]byte, error) {
 			return []byte("BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n"), nil
 		},
@@ -102,7 +102,7 @@ func TestCalendarFeedHandlerSuccess(t *testing.T) {
 
 func TestCalendarFeedHandlerHeadSuccess(t *testing.T) {
 	handler := calendarFeedHandlerWithFetch(
-		CalendarConfig{Name: "private", Token: "secret"},
+		Calendar{Name: "private", Token: "secret"},
 		func(context.Context) ([]byte, error) {
 			return []byte("BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n"), nil
 		},
@@ -128,7 +128,7 @@ func TestCalendarFeedHandlerHeadSuccess(t *testing.T) {
 func TestCalendarFeedHandlerMethodNotAllowed(t *testing.T) {
 	fetchCalled := false
 	handler := calendarFeedHandlerWithFetch(
-		CalendarConfig{Name: "private", Token: "secret"},
+		Calendar{Name: "private", Token: "secret"},
 		func(context.Context) ([]byte, error) {
 			fetchCalled = true
 			return []byte("should not be called"), nil
@@ -170,7 +170,7 @@ func TestCalendarFeedHandlerPublicCalendarIgnoresToken(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			handler := calendarFeedHandlerWithFetch(
-				CalendarConfig{Name: "public", Public: true},
+				Calendar{Name: "public", Public: true},
 				func(context.Context) ([]byte, error) {
 					return []byte("BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n"), nil
 				},
@@ -190,7 +190,7 @@ func TestCalendarFeedHandlerPublicCalendarIgnoresToken(t *testing.T) {
 
 func TestCalendarFeedHandlerUpstreamError(t *testing.T) {
 	handler := calendarFeedHandlerWithFetch(
-		CalendarConfig{Name: "private", Token: "secret"},
+		Calendar{Name: "private", Token: "secret"},
 		func(context.Context) ([]byte, error) {
 			return nil, errors.New("upstream failed")
 		},
