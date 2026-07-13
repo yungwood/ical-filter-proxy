@@ -178,6 +178,12 @@ func TestRecoveryMiddlewareReturnsInternalServerError(t *testing.T) {
 	if !strings.Contains(got, "panic=boom") {
 		t.Fatalf("log output = %q, want panic value", got)
 	}
+	if !strings.Contains(got, "method=GET") {
+		t.Fatalf("log output = %q, want request method", got)
+	}
+	if !strings.Contains(got, "calendar=private") {
+		t.Fatalf("log output = %q, want calendar name", got)
+	}
 	if !strings.Contains(got, "status=500") {
 		t.Fatalf("log output = %q, want request log status", got)
 	}

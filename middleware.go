@@ -63,13 +63,18 @@ func recoveryMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if recovered := recover(); recovered != nil {
-				slog.Error(
-					"recovered panic while processing http request",
+				logArgs := []any{
 					"panic", fmt.Sprint(recovered),
+					"method", r.Method,
 					"path", r.URL.Path,
 					"client_addr", r.RemoteAddr,
 					"stack", string(debug.Stack()),
-				)
+				}
+				if calendarName, ok := calendarNameFromPath(r.URL.Path); ok {
+					logArgs = append(logArgs, "calendar", calendarName)
+				}
+
+				slog.Error("recovered panic while processing http request", logArgs...)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			}
 		}()
