@@ -1,5 +1,40 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "stringMatchRule": {
+      "additionalProperties": false,
+      "properties": {
+        "empty": {
+          "type": "boolean"
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "suffix": {
+          "type": "string"
+        },
+        "contains": {
+          "type": "string"
+        },
+        "contains_any": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "contains_all": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "regex": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
   "properties": {
     "affinity": {
       "properties": {},
@@ -54,136 +89,16 @@
                       "additionalProperties": false,
                       "properties": {
                         "summary": {
-                          "additionalProperties": false,
-                          "properties": {
-                            "empty": {
-                              "type": "boolean"
-                            },
-                            "prefix": {
-                              "type": "string"
-                            },
-                            "suffix": {
-                              "type": "string"
-                            },
-                            "contains": {
-                              "type": "string"
-                            },
-                            "contains_any": {
-                              "items": {
-                                "type": "string"
-                              },
-                              "type": "array"
-                            },
-                            "contains_all": {
-                              "items": {
-                                "type": "string"
-                              },
-                              "type": "array"
-                            },
-                            "regex": {
-                              "type": "string"
-                            }
-                          },
-                          "type": "object"
+                          "$ref": "#/$defs/stringMatchRule"
                         },
                         "description": {
-                          "additionalProperties": false,
-                          "properties": {
-                            "empty": {
-                              "type": "boolean"
-                            },
-                            "prefix": {
-                              "type": "string"
-                            },
-                            "suffix": {
-                              "type": "string"
-                            },
-                            "contains": {
-                              "type": "string"
-                            },
-                            "contains_any": {
-                              "items": {
-                                "type": "string"
-                              },
-                              "type": "array"
-                            },
-                            "contains_all": {
-                              "items": {
-                                "type": "string"
-                              },
-                              "type": "array"
-                            },
-                            "regex": {
-                              "type": "string"
-                            }
-                          },
-                          "type": "object"
+                          "$ref": "#/$defs/stringMatchRule"
                         },
                         "location": {
-                          "additionalProperties": false,
-                          "properties": {
-                            "empty": {
-                              "type": "boolean"
-                            },
-                            "prefix": {
-                              "type": "string"
-                            },
-                            "suffix": {
-                              "type": "string"
-                            },
-                            "contains": {
-                              "type": "string"
-                            },
-                            "contains_any": {
-                              "items": {
-                                "type": "string"
-                              },
-                              "type": "array"
-                            },
-                            "contains_all": {
-                              "items": {
-                                "type": "string"
-                              },
-                              "type": "array"
-                            },
-                            "regex": {
-                              "type": "string"
-                            }
-                          },
-                          "type": "object"
+                          "$ref": "#/$defs/stringMatchRule"
                         },
                         "url": {
-                          "additionalProperties": false,
-                          "properties": {
-                            "empty": {
-                              "type": "boolean"
-                            },
-                            "prefix": {
-                              "type": "string"
-                            },
-                            "suffix": {
-                              "type": "string"
-                            },
-                            "contains": {
-                              "type": "string"
-                            },
-                            "contains_any": {
-                              "items": {
-                                "type": "string"
-                              },
-                              "type": "array"
-                            },
-                            "contains_all": {
-                              "items": {
-                                "type": "string"
-                              },
-                              "type": "array"
-                            },
-                            "regex": {
-                              "type": "string"
-                            }
-                          },
-                          "type": "object"
+                          "$ref": "#/$defs/stringMatchRule"
                         }
                       },
                       "type": "object"
