@@ -170,6 +170,23 @@ Liveness and readiness endpoints are exposed at `/liveness` and `/readiness`. By
 
 Prometheus metrics can be enabled with `-metrics`, which exposes `/metrics`. Metrics use aggregate labels by default; `-metrics-calendar-labels` additionally exposes per-calendar metrics labelled by calendar name. If metrics are enabled without `-management-address`, the metrics endpoint is exposed on the main listener and the service logs a warning.
 
+### Environment variables
+
+Most runtime flags can also be set with environment variables. CLI flags take precedence over environment variables.
+
+| Flag | Environment variable | Description |
+| --- | --- | --- |
+| `-config` | `ICAL_FILTER_PROXY_CONFIG` | Path to the YAML config file. |
+| `-address` | `ICAL_FILTER_PROXY_ADDRESS` | Address for the public calendar listener. |
+| `-debug` | `ICAL_FILTER_PROXY_DEBUG` | Enable debug logging. |
+| `-json` | `ICAL_FILTER_PROXY_JSON` | Emit logs as JSON. |
+| `-validate` | `ICAL_FILTER_PROXY_VALIDATE` | Validate config and exit. |
+| `-metrics` | `ICAL_FILTER_PROXY_METRICS` | Enable Prometheus metrics. |
+| `-metrics-calendar-labels` | `ICAL_FILTER_PROXY_METRICS_CALENDAR_LABELS` | Enable per-calendar metric labels. |
+| `-management-address` | `ICAL_FILTER_PROXY_MANAGEMENT_ADDRESS` | Address for liveness, readiness, and metrics endpoints. |
+
+`-version` is CLI-only.
+
 ### Filters
 
 Calendar events are filtered using a similar concept to email filtering. A list of filters is defined for each calendar in the config.

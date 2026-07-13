@@ -1,39 +1,20 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log/slog"
 	"os"
 )
 
 func main() {
-
-	// command-line args
-	var (
-		configFile             string
-		debugLogging           bool
-		jsonLogging            bool
-		address                string
-		validateConfig         bool
-		printVersion           bool
-		metricsEnabled         bool
-		calendarMetricsEnabled bool
-		managementAddress      string
-	)
-	flag.StringVar(&configFile, "config", "config.yaml", "config file")
-	flag.BoolVar(&debugLogging, "debug", false, "enable debug logging")
-	flag.BoolVar(&printVersion, "version", false, "print version and exit")
-	flag.BoolVar(&jsonLogging, "json", false, "output logging in JSON format")
-	flag.StringVar(&address, "address", ":8080", "address for calendar API listener")
-	flag.BoolVar(&validateConfig, "validate", false, "validate config and exit")
-	flag.BoolVar(&metricsEnabled, "metrics", false, "enable prometheus metrics endpoint")
-	flag.BoolVar(&calendarMetricsEnabled, "metrics-calendar-labels", false, "enable per-calendar prometheus metrics")
-	flag.StringVar(&managementAddress, "management-address", "", "optional address for liveness, readiness, and metrics endpoints")
-	flag.Parse()
+	options, err := parseOptions(os.Args[1:], os.LookupEnv)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 
 	// print version and exit
-	if printVersion {
+	if options.printVersion {
 		build := currentBuildInfo()
 		fmt.Println("version:", build.Version)
 		fmt.Println("revision:", build.Revision)
@@ -43,7 +24,7 @@ func main() {
 
 	// setup logging options
 	loggingLevel := slog.LevelInfo // default loglevel
-	if debugLogging {
+	if options.debugLogging {
 		loggingLevel = slog.LevelDebug // debug logging enabled
 	}
 	opts := &slog.HandlerOptions{
@@ -52,7 +33,7 @@ func main() {
 
 	// create json or text logger based on args
 	var logger *slog.Logger
-	if jsonLogging {
+	if options.jsonLogging {
 		logger = slog.New(slog.NewJSONHandler(os.Stdout, opts))
 	} else {
 		logger = slog.New(slog.NewTextHandler(os.Stdout, opts))
@@ -60,8 +41,8 @@ func main() {
 	slog.SetDefault(logger)
 
 	// load configuration
-	slog.Debug("reading config", "configFile", configFile)
-	config, err := LoadConfig(configFile)
+	slog.Debug("reading config", "configFile", options.configFile)
+	config, err := LoadConfig(options.configFile)
 	if err != nil {
 		slog.Error("Invalid configuration", "error", err)
 		os.Exit(1) // fail if config is not valid
@@ -77,21 +58,21 @@ func main() {
 	}
 
 	// print a message and exit if validate arg was specified
-	if validateConfig {
+	if options.validateConfig {
 		slog.Info("configuration was validated successfully")
 		os.Exit(0)
 	}
 
 	var metrics *prometheusMetrics
-	if metricsEnabled {
-		metrics = newPrometheusMetrics(calendarMetricsEnabled)
+	if options.metricsEnabled {
+		metrics = newPrometheusMetrics(options.calendarMetricsEnabled)
 	}
 
-	if metricsEnabled && managementAddress == "" {
+	if options.metricsEnabled && options.managementAddress == "" {
 		slog.Warn("Prometheus metrics endpoint enabled on public listener; set -management-address to expose management endpoints separately")
 	}
 
-	servers := buildHTTPServers(runtimeConfig, address, managementAddress, metrics)
+	servers := buildHTTPServers(runtimeConfig, options.address, options.managementAddress, metrics)
 	if err := runHTTPServers(servers...); err != nil {
 		slog.Error("Error running web server", "error", err)
 		os.Exit(1)
