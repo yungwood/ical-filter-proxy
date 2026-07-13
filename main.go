@@ -1,20 +1,11 @@
 package main
 
 import (
-	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
-	"os/signal"
-	"strconv"
-	"syscall"
-	"time"
 )
-
-const gracefulShutdownTimeout = 10 * time.Second
 
 func main() {
 
@@ -28,6 +19,7 @@ func main() {
 		printVersion           bool
 		metricsEnabled         bool
 		calendarMetricsEnabled bool
+		managementAddress      string
 	)
 	flag.StringVar(&configFile, "config", "config.yaml", "config file")
 	flag.BoolVar(&debugLogging, "debug", false, "enable debug logging")
@@ -37,6 +29,7 @@ func main() {
 	flag.BoolVar(&validateConfig, "validate", false, "validate config and exit")
 	flag.BoolVar(&metricsEnabled, "metrics", false, "enable prometheus metrics endpoint")
 	flag.BoolVar(&calendarMetricsEnabled, "metrics-calendar-labels", false, "enable per-calendar prometheus metrics")
+	flag.StringVar(&managementAddress, "management-address", "", "optional address for liveness, readiness, and metrics endpoints")
 	flag.Parse()
 
 	// print version and exit
@@ -85,57 +78,14 @@ func main() {
 		metrics = newPrometheusMetrics(calendarMetricsEnabled)
 	}
 
-	mux := http.NewServeMux()
-	registerPublicRoutes(mux, config, metrics)
-	registerInternalRoutes(mux, metrics)
-
-	handler := recoveryMiddleware(mux)
-	if metrics != nil {
-		handler = metrics.middleware(handler)
-	}
-	handler = requestLoggingMiddleware(handler)
-
-	server := &http.Server{
-		Addr:              ":" + strconv.Itoa(listenPort),
-		Handler:           handler,
-		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout:       10 * time.Second,
-		WriteTimeout:      30 * time.Second,
-		IdleTimeout:       60 * time.Second,
+	if metricsEnabled && managementAddress == "" {
+		slog.Warn("Prometheus metrics endpoint enabled on public listener; set -management-address to expose management endpoints separately")
 	}
 
-	// start the webserver
-	slog.Info("Starting web server", "port", listenPort)
-	serverErr := make(chan error, 1)
-	go func() {
-		serverErr <- server.ListenAndServe()
-	}()
-
-	shutdownSignal := make(chan os.Signal, 1)
-	signal.Notify(shutdownSignal, syscall.SIGINT, syscall.SIGTERM)
-	defer signal.Stop(shutdownSignal)
-
-	select {
-	case err := <-serverErr:
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("Error running web server", "error", err)
-		}
-	case sig := <-shutdownSignal:
-		slog.Info("Stopping web server", "signal", sig.String())
-
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
-		defer cancel()
-
-		if err := server.Shutdown(shutdownCtx); err != nil {
-			slog.Error("Error stopping web server", "error", err)
-			if closeErr := server.Close(); closeErr != nil && !errors.Is(closeErr, http.ErrServerClosed) {
-				slog.Error("Error closing web server", "error", closeErr)
-			}
-		}
-
-		if err := <-serverErr; err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("Error running web server", "error", err)
-		}
+	servers := buildHTTPServers(config, listenPort, managementAddress, metrics)
+	if err := runHTTPServers(servers...); err != nil {
+		slog.Error("Error running web server", "error", err)
+		os.Exit(1)
 	}
 
 }

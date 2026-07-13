@@ -40,6 +40,13 @@ in {
       description = "Port on which the service listens.";
     };
 
+    managementAddress = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      example = "127.0.0.1:9090";
+      description = "Optional address for liveness, readiness, and metrics endpoints. When unset, these endpoints are served on the main listener.";
+    };
+
     configFile = mkOption {
       type = types.nullOr types.path;
       default = null;
@@ -472,6 +479,10 @@ in {
               "${configFile}"
               "-port"
               "${toString cfg.port}"
+            ]
+            ++ optionals (cfg.managementAddress != null) [
+              "-management-address"
+              cfg.managementAddress
             ]
             ++ optional cfg.debug "-debug"
             ++ optional cfg.jsonLogging "-json"
