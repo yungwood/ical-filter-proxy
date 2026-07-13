@@ -5,11 +5,17 @@ import (
 	"net/http"
 )
 
-func registerPublicRoutes(mux *http.ServeMux, config Config) {
+func registerPublicRoutes(mux *http.ServeMux, config Config, metrics *prometheusMetrics) {
 	for _, calendarConfig := range config.Calendars {
 		httpPath := "/calendars/" + calendarConfig.Name + "/feed"
 		slog.Debug("Configuring endpoint", "calendar", calendarConfig.Name, "http_path", httpPath)
-		mux.HandleFunc(httpPath, calendarFeedHandler(calendarConfig))
+
+		fetch := calendarConfig.fetch
+		if metrics != nil {
+			fetch = metrics.instrumentFetch(fetch)
+		}
+
+		mux.HandleFunc(httpPath, calendarFeedHandlerWithFetch(calendarConfig, fetch))
 	}
 }
 

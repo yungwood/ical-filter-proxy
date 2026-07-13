@@ -15,10 +15,6 @@ const (
 
 type calendarFetchFunc func(context.Context) ([]byte, error)
 
-func calendarFeedHandler(calendarConfig CalendarConfig) http.HandlerFunc {
-	return calendarFeedHandlerWithFetch(calendarConfig, calendarConfig.fetch)
-}
-
 func calendarFeedHandlerWithFetch(calendarConfig CalendarConfig, fetch calendarFetchFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		setCommonResponseHeaders(w)

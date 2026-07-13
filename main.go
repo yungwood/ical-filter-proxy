@@ -77,12 +77,13 @@ func main() {
 		os.Exit(0)
 	}
 
-	mux := http.NewServeMux()
-	registerPublicRoutes(mux, config)
 	var metrics *prometheusMetrics
 	if metricsEnabled {
 		metrics = newPrometheusMetrics()
 	}
+
+	mux := http.NewServeMux()
+	registerPublicRoutes(mux, config, metrics)
 	registerInternalRoutes(mux, metrics)
 
 	handler := recoveryMiddleware(mux)
