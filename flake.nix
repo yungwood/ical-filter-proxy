@@ -14,51 +14,14 @@
     # NixOS module that works across all systems
     nixosModule = args: import ./service.nix (args // {inherit self;});
 
-    # Overlay to make ical-filter-proxy available in nixpkgs
-    overlay = final: prev: {
-      ical-filter-proxy = prev.buildGoModule {
+    mkIcalFilterProxy = pkgs:
+      pkgs.buildGoModule {
         pname = "ical-filter-proxy";
         version = "0.1.0";
 
         src = ./.;
 
-        vendorHash = "sha256-tdIHHUN9/Qg07wUKvwGw0Lsz6uNFTUR6CpBrxx3jNQg=";
-
-        ldflags = [
-          "-s"
-          "-w"
-          "-X main.version=${self.rev or "dev"}"
-        ];
-
-        meta = with prev.lib; {
-          description = "iCal proxy with support for user-defined filtering rules";
-          homepage = "https://github.com/yungwood/ical-filter-proxy";
-          license = licenses.mit;
-          maintainers = [];
-          platforms = platforms.unix;
-        };
-      };
-    };
-  in
-    {
-      # Export the NixOS module
-      nixosModules.default = nixosModule;
-      nixosModules.ical-filter-proxy = nixosModule;
-
-      # Export the overlay
-      overlays.default = overlay;
-      overlays.ical-filter-proxy = overlay;
-    }
-    // flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
-
-      ical-filter-proxy = pkgs.buildGoModule {
-        pname = "ical-filter-proxy";
-        version = "0.1.0";
-
-        src = ./.;
-
-        vendorHash = "sha256-tdIHHUN9/Qg07wUKvwGw0Lsz6uNFTUR6CpBrxx3jNQg=";
+        vendorHash = "sha256-BnE9STifiZ+K6LPfCUS7ZoO1Izzv7UPF1hsInzTm4Fc=";
 
         ldflags = [
           "-s"
@@ -74,6 +37,25 @@
           platforms = platforms.unix;
         };
       };
+
+    # Overlay to make ical-filter-proxy available in nixpkgs
+    overlay = final: prev: {
+      ical-filter-proxy = mkIcalFilterProxy prev;
+    };
+  in
+    {
+      # Export the NixOS module
+      nixosModules.default = nixosModule;
+      nixosModules.ical-filter-proxy = nixosModule;
+
+      # Export the overlay
+      overlays.default = overlay;
+      overlays.ical-filter-proxy = overlay;
+    }
+    // flake-utils.lib.eachDefaultSystem (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+
+      ical-filter-proxy = mkIcalFilterProxy pkgs;
     in {
       packages = {
         default = ical-filter-proxy;
