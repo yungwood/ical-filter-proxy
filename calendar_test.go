@@ -1,10 +1,84 @@
 package main
 
 import (
+	"context"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
 	ics "github.com/arran4/golang-ical"
 )
+
+func TestCalendarConfigFetch(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/calendar")
+		_, _ = w.Write([]byte(testCalendarFeed))
+	}))
+	defer server.Close()
+
+	config := CalendarConfig{
+		Name:        "test",
+		PublishName: "Filtered Calendar",
+		FeedURL:     server.URL,
+		Filters: []Filter{
+			{
+				Description: "Remove canceled events",
+				RemoveEvent: true,
+				Match: EventMatchRules{
+					Summary: StringMatchRule{Prefix: "Canceled: "},
+				},
+			},
+			{
+				Description: "Rename on-call event",
+				Match: EventMatchRules{
+					Summary: StringMatchRule{Contains: "schedule: oncall"},
+				},
+				Transform: EventTransformRules{
+					Summary: StringTransformRule{Replace: "On-Call"},
+				},
+			},
+		},
+	}
+
+	feed, err := config.fetch(context.Background())
+	if err != nil {
+		t.Fatalf("fetch() returned error: %v", err)
+	}
+
+	calendar, err := ics.ParseCalendar(strings.NewReader(string(feed)))
+	if err != nil {
+		t.Fatalf("ParseCalendar() returned error: %v", err)
+	}
+
+	if !strings.Contains(string(feed), "X-WR-CALNAME:Filtered Calendar") {
+		t.Fatalf("serialized feed does not contain published calendar name:\n%s", string(feed))
+	}
+
+	events := calendar.Events()
+	if len(events) != 2 {
+		t.Fatalf("len(Events()) = %d, want 2", len(events))
+	}
+
+	summaries := map[string]bool{}
+	for _, event := range events {
+		summary := event.GetProperty(ics.ComponentPropertySummary)
+		if summary == nil {
+			t.Fatal("event summary is nil")
+		}
+		summaries[summary.Value] = true
+	}
+
+	if !summaries["On-Call"] {
+		t.Fatal("transformed On-Call event missing")
+	}
+	if !summaries["Team sync"] {
+		t.Fatal("unmatched Team sync event missing")
+	}
+	if summaries["Canceled: Team sync"] {
+		t.Fatal("canceled event was not removed")
+	}
+}
 
 func TestCalendarConfigProcessEvent(t *testing.T) {
 	tests := []struct {
@@ -157,3 +231,29 @@ func TestCalendarConfigProcessEvent(t *testing.T) {
 		})
 	}
 }
+
+const testCalendarFeed = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ical-filter-proxy//test//EN
+BEGIN:VEVENT
+UID:remove-1
+DTSTAMP:20260713T000000Z
+DTSTART:20260713T010000Z
+DTEND:20260713T020000Z
+SUMMARY:Canceled: Team sync
+END:VEVENT
+BEGIN:VEVENT
+UID:transform-1
+DTSTAMP:20260713T000000Z
+DTSTART:20260713T030000Z
+DTEND:20260713T040000Z
+SUMMARY:ops schedule: oncall
+END:VEVENT
+BEGIN:VEVENT
+UID:keep-1
+DTSTAMP:20260713T000000Z
+DTSTART:20260713T050000Z
+DTEND:20260713T060000Z
+SUMMARY:Team sync
+END:VEVENT
+END:VCALENDAR`
