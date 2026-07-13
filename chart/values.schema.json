@@ -6,12 +6,17 @@
       "type": "object"
     },
     "args": {
+      "items": {
+        "type": "string"
+      },
       "type": "array"
     },
     "app": {
       "additionalProperties": false,
       "properties": {
         "port": {
+          "maximum": 65535,
+          "minimum": 1,
           "type": "integer"
         }
       },
@@ -21,6 +26,9 @@
       "type": "object"
     },
     "command": {
+      "items": {
+        "type": "string"
+      },
       "type": "array"
     },
     "config": {
@@ -367,9 +375,6 @@
     "ingress": {
       "properties": {
         "annotations": {
-          "additionalProperties": {
-            "type": "string"
-          },
           "properties": {},
           "type": "object"
         },
@@ -452,22 +457,14 @@
       "type": "object"
     },
     "replicaCount": {
+      "minimum": 0,
       "type": "integer"
     },
     "revisionHistoryLimit": {
+      "minimum": 0,
       "type": "integer"
     },
     "resources": {
-      "properties": {
-        "limits": {
-          "properties": {},
-          "type": "object"
-        },
-        "requests": {
-          "properties": {},
-          "type": "object"
-        }
-      },
       "type": "object"
     },
     "securityContext": {
@@ -477,6 +474,8 @@
     "service": {
       "properties": {
         "port": {
+          "maximum": 65535,
+          "minimum": 1,
           "type": "integer"
         },
         "type": {
@@ -488,9 +487,6 @@
     "serviceAccount": {
       "properties": {
         "annotations": {
-          "additionalProperties": {
-            "type": "string"
-          },
           "properties": {},
           "type": "object"
         },
@@ -511,39 +507,12 @@
     },
     "volumeMounts": {
       "items": {
-        "properties": {
-          "mountPath": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "readOnly": {
-            "type": "boolean"
-          }
-        },
         "type": "object"
       },
       "type": "array"
     },
     "volumes": {
       "items": {
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "secret": {
-            "properties": {
-              "optional": {
-                "type": "boolean"
-              },
-              "secretName": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          }
-        },
         "type": "object"
       },
       "type": "array"
