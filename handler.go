@@ -59,6 +59,8 @@ func setCommonResponseHeaders(w http.ResponseWriter) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 }
 
+// tokenMatches compares tokens without short-circuiting on the first different
+// byte.
 func tokenMatches(token string, expectedToken string) bool {
 	return subtle.ConstantTimeCompare([]byte(token), []byte(expectedToken)) == 1
 }

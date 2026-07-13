@@ -13,7 +13,9 @@ type Config struct {
 	Calendars []CalendarConfig `yaml:"calendars"`
 }
 
-// LoadConfig loads the configuration file and does basic validation.
+// LoadConfig loads YAML config, resolves secret files, and validates
+// calendar-level settings. Rule compilation and regex validation happen when
+// building RuntimeConfig.
 func (config *Config) LoadConfig(file string) bool {
 	data, err := os.ReadFile(file)
 	if err != nil {

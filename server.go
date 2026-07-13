@@ -57,6 +57,8 @@ func buildHTTPServers(config RuntimeConfig, listenPort int, managementAddress st
 	}
 
 	if managementAddress == "" {
+		// Without a separate management listener, expose health and metrics on
+		// the public listener for backwards-compatible single-port operation.
 		registerInternalRoutes(publicMux, metrics)
 		return servers
 	}
