@@ -51,7 +51,7 @@ func TestRequestLoggingMiddlewareLogsPathWithoutQuery(t *testing.T) {
 
 	handler := requestLoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusAccepted)
-	}))
+	}), nil)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/calendars/private/feed?token=secret", nil)
 	if err != nil {
@@ -102,7 +102,7 @@ func TestRequestLoggingMiddlewareSkipsHealthEndpoints(t *testing.T) {
 
 			handler := requestLoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(http.StatusOK)
-			}))
+			}), nil)
 
 			req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, tt.path, nil)
 			if err != nil {
@@ -128,7 +128,7 @@ func TestRequestLoggingMiddlewareLogsNonHealthEndpoint(t *testing.T) {
 
 	handler := requestLoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
-	}))
+	}), nil)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/liveness/extra", nil)
 	if err != nil {
@@ -156,7 +156,7 @@ func TestRecoveryMiddlewareReturnsInternalServerError(t *testing.T) {
 
 	handler := requestLoggingMiddleware(recoveryMiddleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		panic("boom")
-	})))
+	}), nil), nil)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/calendars/private/feed", nil)
 	if err != nil {
@@ -192,7 +192,7 @@ func TestRecoveryMiddlewareReturnsInternalServerError(t *testing.T) {
 func TestRecoveryMiddlewarePassesThrough(t *testing.T) {
 	handler := recoveryMiddleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
-	}))
+	}), nil)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/calendars/private/feed", nil)
 	if err != nil {

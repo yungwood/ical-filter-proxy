@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/netip"
 	"os"
 	"os/signal"
 	"syscall"
@@ -35,23 +36,23 @@ func newHTTPServer(address string, handler http.Handler) *http.Server {
 	}
 }
 
-func buildHTTPHandler(listener string, handler http.Handler, metrics *prometheusMetrics) http.Handler {
-	handler = recoveryMiddleware(handler)
+func buildHTTPHandler(listener string, handler http.Handler, metrics *prometheusMetrics, trustedProxyCIDRs []netip.Prefix) http.Handler {
+	handler = recoveryMiddleware(handler, trustedProxyCIDRs)
 	if metrics != nil {
 		handler = metrics.middleware(listener, handler)
 	}
 
-	return requestLoggingMiddleware(handler)
+	return requestLoggingMiddleware(handler, trustedProxyCIDRs)
 }
 
-func buildHTTPServers(config RuntimeConfig, address string, managementAddress string, metrics *prometheusMetrics) []managedHTTPServer {
+func buildHTTPServers(config RuntimeConfig, address string, managementAddress string, metrics *prometheusMetrics, trustedProxyCIDRs []netip.Prefix) []managedHTTPServer {
 	publicMux := http.NewServeMux()
-	registerPublicRoutes(publicMux, config, metrics)
+	registerPublicRoutes(publicMux, config, metrics, trustedProxyCIDRs)
 
 	servers := []managedHTTPServer{
 		{
 			name:   "public",
-			server: newHTTPServer(address, buildHTTPHandler("public", publicMux, metrics)),
+			server: newHTTPServer(address, buildHTTPHandler("public", publicMux, metrics, trustedProxyCIDRs)),
 		},
 	}
 
@@ -66,7 +67,7 @@ func buildHTTPServers(config RuntimeConfig, address string, managementAddress st
 	registerInternalRoutes(managementMux, metrics)
 	return append(servers, managedHTTPServer{
 		name:   "management",
-		server: newHTTPServer(managementAddress, buildHTTPHandler("management", managementMux, metrics)),
+		server: newHTTPServer(managementAddress, buildHTTPHandler("management", managementMux, metrics, trustedProxyCIDRs)),
 	})
 }
 

@@ -72,7 +72,7 @@ func main() {
 		slog.Warn("Prometheus metrics endpoint enabled on public listener; set -management-address to expose management endpoints separately")
 	}
 
-	servers := buildHTTPServers(runtimeConfig, options.address, options.managementAddress, metrics)
+	servers := buildHTTPServers(runtimeConfig, options.address, options.managementAddress, metrics, options.trustedProxyCIDRs)
 	if err := runHTTPServers(servers...); err != nil {
 		slog.Error("web server failed", "error", err)
 		os.Exit(1)

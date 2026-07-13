@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/netip"
 	"strings"
 	"testing"
 )
@@ -35,6 +36,7 @@ func TestParseOptionsUsesEnvironmentDefaults(t *testing.T) {
 		envMetrics:               "true",
 		envMetricsCalendarLabels: "true",
 		envManagementAddress:     "127.0.0.1:9090",
+		envTrustedProxyCIDRs:     "127.0.0.1/32, 10.0.0.0/8",
 	}
 
 	options, err := parseOptions(nil, mapEnv(env))
@@ -51,6 +53,9 @@ func TestParseOptionsUsesEnvironmentDefaults(t *testing.T) {
 	if options.managementAddress != "127.0.0.1:9090" {
 		t.Fatalf("managementAddress = %q, want env value", options.managementAddress)
 	}
+	if got, want := strings.Join(prefixStrings(options.trustedProxyCIDRs), ","), "127.0.0.1/32,10.0.0.0/8"; got != want {
+		t.Fatalf("trustedProxyCIDRs = %q, want %q", got, want)
+	}
 	if !options.debugLogging || !options.jsonLogging || !options.validateConfig || !options.metricsEnabled || !options.calendarMetricsEnabled {
 		t.Fatalf("boolean options = %+v, want all env booleans true", options)
 	}
@@ -63,6 +68,7 @@ func TestParseOptionsCLIOverridesEnvironment(t *testing.T) {
 		envDebug:             "true",
 		envMetrics:           "true",
 		envManagementAddress: "127.0.0.1:9090",
+		envTrustedProxyCIDRs: "10.0.0.0/8",
 	}
 
 	options, err := parseOptions([]string{
@@ -71,6 +77,8 @@ func TestParseOptionsCLIOverridesEnvironment(t *testing.T) {
 		"-debug=false",
 		"-metrics=false",
 		"-management-address", "127.0.0.1:9091",
+		"-trusted-proxy-cidr", "127.0.0.1/32",
+		"-trusted-proxy-cidr", "192.0.2.0/24",
 	}, mapEnv(env))
 	if err != nil {
 		t.Fatalf("parseOptions() returned error: %v", err)
@@ -91,6 +99,9 @@ func TestParseOptionsCLIOverridesEnvironment(t *testing.T) {
 	if options.managementAddress != "127.0.0.1:9091" {
 		t.Fatalf("managementAddress = %q, want CLI value", options.managementAddress)
 	}
+	if got, want := strings.Join(prefixStrings(options.trustedProxyCIDRs), ","), "127.0.0.1/32,192.0.2.0/24"; got != want {
+		t.Fatalf("trustedProxyCIDRs = %q, want CLI values %q", got, want)
+	}
 }
 
 func TestParseOptionsRejectsInvalidBoolEnvironment(t *testing.T) {
@@ -102,6 +113,28 @@ func TestParseOptionsRejectsInvalidBoolEnvironment(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), envDebug) {
 		t.Fatalf("parseOptions() error = %q, want env var name", err)
+	}
+}
+
+func TestParseOptionsRejectsInvalidTrustedProxyCIDREnvironment(t *testing.T) {
+	_, err := parseOptions(nil, mapEnv(map[string]string{
+		envTrustedProxyCIDRs: "not-a-cidr",
+	}))
+	if err == nil {
+		t.Fatal("parseOptions() returned nil error")
+	}
+	if !strings.Contains(err.Error(), "not-a-cidr") {
+		t.Fatalf("parseOptions() error = %q, want invalid CIDR value", err)
+	}
+}
+
+func TestParseOptionsRejectsInvalidTrustedProxyCIDRFlag(t *testing.T) {
+	_, err := parseOptions([]string{"-trusted-proxy-cidr", "not-a-cidr"}, emptyEnv)
+	if err == nil {
+		t.Fatal("parseOptions() returned nil error")
+	}
+	if !strings.Contains(err.Error(), "not-a-cidr") {
+		t.Fatalf("parseOptions() error = %q, want invalid CIDR value", err)
 	}
 }
 
@@ -134,4 +167,13 @@ func mapEnv(values map[string]string) envLookupFunc {
 		value, ok := values[name]
 		return value, ok
 	}
+}
+
+func prefixStrings(prefixes []netip.Prefix) []string {
+	values := make([]string, 0, len(prefixes))
+	for _, prefix := range prefixes {
+		values = append(values, prefix.String())
+	}
+
+	return values
 }
