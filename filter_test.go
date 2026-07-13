@@ -186,16 +186,18 @@ func TestFilterTransformEvent(t *testing.T) {
 			},
 		},
 		{
-			name: "prefix and suffix summary and description",
+			name: "prefix and suffix fields",
 			transform: EventTransformRules{
 				Summary:     StringTransformRule{Prefix: "[", Suffix: "]"},
 				Description: StringTransformRule{Prefix: "(", Suffix: ")"},
+				Location:    StringTransformRule{Prefix: "Location: "},
+				URL:         StringTransformRule{Suffix: "?tracked=true"},
 			},
 			want: map[ics.ComponentProperty]string{
 				ics.ComponentPropertySummary:     "[original summary]",
 				ics.ComponentPropertyDescription: "(original description)",
-				ics.ComponentPropertyLocation:    "original location",
-				ics.ComponentPropertyUrl:         "https://example.com/original",
+				ics.ComponentPropertyLocation:    "Location: original location",
+				ics.ComponentPropertyUrl:         "https://example.com/original?tracked=true",
 			},
 		},
 	}

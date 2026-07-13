@@ -83,17 +83,15 @@ func (filter Filter) transformEvent(event *ics.VEvent) {
 	}
 
 	// Location transformations
-	if filter.Transform.Location.Remove {
-		event.SetLocation("")
-	} else if filter.Transform.Location.Replace != "" {
-		event.SetLocation(filter.Transform.Location.Replace)
+	eventLocationValue := eventStringProperty(*event, ics.ComponentPropertyLocation)
+	if filter.Transform.Location.hasActions() {
+		event.SetLocation(applyStringTransform(eventLocationValue, filter.Transform.Location))
 	}
 
 	// URL transformations
-	if filter.Transform.URL.Remove {
-		event.SetURL("")
-	} else if filter.Transform.URL.Replace != "" {
-		event.SetURL(filter.Transform.URL.Replace)
+	eventURLValue := eventStringProperty(*event, ics.ComponentPropertyUrl)
+	if filter.Transform.URL.hasActions() {
+		event.SetURL(applyStringTransform(eventURLValue, filter.Transform.URL))
 	}
 }
 
