@@ -15,6 +15,7 @@
     nixosModule = args: import ./service.nix (args // {inherit self;});
 
     packageVersion = self.shortRev or "dev";
+    packageRevision = self.shortRev or "unknown";
 
     mkIcalFilterProxy = pkgs:
       pkgs.buildGoModule {
@@ -29,6 +30,7 @@
           "-s"
           "-w"
           "-X main.version=${packageVersion}"
+          "-X main.revision=${packageRevision}"
         ];
 
         meta = with pkgs.lib; {

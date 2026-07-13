@@ -14,7 +14,10 @@ import (
 	"time"
 )
 
-var version = "development"
+var (
+	version  = "development"
+	revision = "unknown"
+)
 
 const gracefulShutdownTimeout = 10 * time.Second
 
