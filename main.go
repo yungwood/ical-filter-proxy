@@ -197,8 +197,8 @@ func main() {
 	}
 
 	// add a readiness and liveness check endpoint (return blank 200 OK response)
-	http.HandleFunc("/liveness", func(w http.ResponseWriter, r *http.Request) {})
-	http.HandleFunc("/readiness", func(w http.ResponseWriter, r *http.Request) {})
+	http.HandleFunc("/liveness", func(_ http.ResponseWriter, _ *http.Request) {})
+	http.HandleFunc("/readiness", func(_ http.ResponseWriter, _ *http.Request) {})
 
 	// start the webserver
 	slog.Info("Starting web server", "port", listenPort)

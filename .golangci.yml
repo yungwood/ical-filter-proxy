@@ -1,0 +1,22 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - bodyclose
+    - contextcheck
+    - errname
+    - errorlint
+    - gocritic
+    - loggercheck
+    - misspell
+    - nilerr
+    - nilnil
+    - noctx
+    - nolintlint
+    - predeclared
+    - revive
+    - unconvert

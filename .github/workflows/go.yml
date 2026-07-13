@@ -5,12 +5,14 @@ on:
     branches:
       - "*"
     paths:
+      - .golangci.yml
       - .github/workflows/go.yml
       - go.mod
       - go.sum
       - "*.go"
   pull_request:
     paths:
+      - .golangci.yml
       - .github/workflows/go.yml
       - go.mod
       - go.sum
@@ -74,3 +76,4 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           version: v2.12.2
+          args: --config .golangci.yml
