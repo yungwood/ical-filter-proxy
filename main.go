@@ -67,7 +67,7 @@ func main() {
 	}
 	slog.Debug("loaded config")
 
-	runtimeConfig, err := config.RuntimeConfig()
+	runtimeConfig, err := config.Compile()
 	if err != nil {
 		slog.Error("Invalid configuration", "error", err)
 		os.Exit(1)

@@ -136,7 +136,7 @@ calendars:
 	}
 }
 
-func TestConfigRuntimeConfig(t *testing.T) {
+func TestConfigCompile(t *testing.T) {
 	config := Config{
 		Calendars: []CalendarConfig{
 			{
@@ -159,9 +159,9 @@ func TestConfigRuntimeConfig(t *testing.T) {
 		},
 	}
 
-	runtimeConfig, err := config.RuntimeConfig()
+	runtimeConfig, err := config.Compile()
 	if err != nil {
-		t.Fatalf("RuntimeConfig() returned error: %v", err)
+		t.Fatalf("Compile() returned error: %v", err)
 	}
 
 	if len(runtimeConfig.Calendars) != 1 {
@@ -189,7 +189,7 @@ func TestConfigRuntimeConfig(t *testing.T) {
 	}
 }
 
-func TestConfigRuntimeConfigRejectsInvalidRegex(t *testing.T) {
+func TestConfigCompileRejectsInvalidRegex(t *testing.T) {
 	config := Config{
 		Calendars: []CalendarConfig{
 			{
@@ -208,9 +208,9 @@ func TestConfigRuntimeConfigRejectsInvalidRegex(t *testing.T) {
 		},
 	}
 
-	_, err := config.RuntimeConfig()
+	_, err := config.Compile()
 	if err == nil {
-		t.Fatal("RuntimeConfig() returned nil error")
+		t.Fatal("Compile() returned nil error")
 	}
 }
 
