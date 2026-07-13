@@ -46,7 +46,7 @@ jobs:
         shell: bash
 
       - name: Set up Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
 
       - name: Lint chart
         run: helm lint charts/ical-filter-proxy
@@ -79,7 +79,7 @@ jobs:
         shell: bash
 
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           path: helm-charts
           token: ${{ secrets.HELM_CHARTS_TOKEN }}
