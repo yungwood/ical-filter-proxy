@@ -52,4 +52,4 @@ jobs:
         uses: helm/kind-action@v1.12.0
 
       - name: Install chart
-        run: ct install --charts chart --helm-extra-set-args "--set image.tag=main"
+        run: ct install --charts chart --helm-extra-set-args "--set image.tag=main --set image.pullPolicy=Always"
