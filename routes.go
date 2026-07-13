@@ -8,7 +8,7 @@ import (
 func registerPublicRoutes(mux *http.ServeMux, config RuntimeConfig, metrics *prometheusMetrics) {
 	for _, calendar := range config.Calendars {
 		httpPath := "/calendars/" + calendar.Name + "/feed"
-		slog.Debug("configuring endpoint", "calendar", calendar.Name, "http_path", httpPath)
+		slog.Debug("configuring endpoint", "calendar", calendar.Name, "path", httpPath)
 
 		fetch := calendar.fetch
 		if metrics != nil {
