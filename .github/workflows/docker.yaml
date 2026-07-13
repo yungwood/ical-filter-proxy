@@ -98,8 +98,8 @@ jobs:
           push: ${{ steps.push-eligibility.outputs.should_push == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=ical-filter-proxy
+          cache-to: type=gha,scope=ical-filter-proxy,mode=max
           build-args: |
             VERSION=${{ env.VERSION }}
             REVISION=${{ github.sha }}

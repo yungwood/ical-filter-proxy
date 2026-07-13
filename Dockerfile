@@ -3,8 +3,13 @@ FROM golang:1.26-alpine as builder
 ARG VERSION="unknown"
 ARG REVISION="unknown"
 WORKDIR /go/src/app
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod \
+  go mod download
 COPY . .
-RUN CGO_ENABLED=0 go install -ldflags "-extldflags '-static' -X 'main.version=${VERSION}' -X 'main.commit=${REVISION}'"
+RUN --mount=type=cache,target=/go/pkg/mod \
+  --mount=type=cache,target=/root/.cache/go-build \
+  CGO_ENABLED=0 go install -ldflags "-extldflags '-static' -X 'main.version=${VERSION}' -X 'main.commit=${REVISION}'"
 
 # Stage 2: setup alpine base for building scratch image
 FROM alpine:3.24.1 as base
