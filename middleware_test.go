@@ -138,3 +138,58 @@ func TestRequestLoggingMiddlewareLogsNonHealthEndpoint(t *testing.T) {
 		t.Fatalf("log output = %q, want non-health endpoint to be logged", got)
 	}
 }
+
+func TestRecoveryMiddlewareReturnsInternalServerError(t *testing.T) {
+	var logOutput bytes.Buffer
+	originalLogger := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logOutput, nil)))
+	t.Cleanup(func() {
+		slog.SetDefault(originalLogger)
+	})
+
+	handler := requestLoggingMiddleware(recoveryMiddleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		panic("boom")
+	})))
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/calendars/private/feed", nil)
+	if err != nil {
+		t.Fatalf("NewRequestWithContext() returned error: %v", err)
+	}
+	req.RemoteAddr = "192.0.2.1:12345"
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusInternalServerError)
+	}
+
+	got := logOutput.String()
+	if !strings.Contains(got, "Recovered panic while processing HTTP request") {
+		t.Fatalf("log output = %q, want recovery log", got)
+	}
+	if !strings.Contains(got, "panic=boom") {
+		t.Fatalf("log output = %q, want panic value", got)
+	}
+	if !strings.Contains(got, "status=500") {
+		t.Fatalf("log output = %q, want request log status", got)
+	}
+}
+
+func TestRecoveryMiddlewarePassesThrough(t *testing.T) {
+	handler := recoveryMiddleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/calendars/private/feed", nil)
+	if err != nil {
+		t.Fatalf("NewRequestWithContext() returned error: %v", err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusNoContent {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusNoContent)
+	}
+}

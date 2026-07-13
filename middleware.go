@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
+	"runtime/debug"
 	"time"
 )
 
@@ -50,6 +52,25 @@ func requestLoggingMiddleware(next http.Handler) http.Handler {
 			"client_ip", r.RemoteAddr,
 			"user_agent", r.UserAgent(),
 		)
+	})
+}
+
+func recoveryMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				slog.Error(
+					"Recovered panic while processing HTTP request",
+					"panic", fmt.Sprint(recovered),
+					"path", r.URL.Path,
+					"client_ip", r.RemoteAddr,
+					"stack", string(debug.Stack()),
+				)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
+		}()
+
+		next.ServeHTTP(w, r)
 	})
 }
 
