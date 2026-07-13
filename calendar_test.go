@@ -26,13 +26,13 @@ func TestCalendarFetch(t *testing.T) {
 				Description: "Remove canceled events",
 				RemoveEvent: true,
 				Match: EventMatchRules{
-					Summary: StringMatchRule{Prefix: "Canceled: "},
+					Summary: StringMatchRuleConfig{Prefix: "Canceled: "},
 				},
 			},
 			{
 				Description: "Rename on-call event",
 				Match: EventMatchRules{
-					Summary: StringMatchRule{Contains: "schedule: oncall"},
+					Summary: StringMatchRuleConfig{Contains: "schedule: oncall"},
 				},
 				Transform: EventTransformRules{
 					Summary: StringTransformRule{Replace: "On-Call"},
@@ -96,7 +96,7 @@ func TestCalendarProcessEvent(t *testing.T) {
 						Description: "Remove canceled events",
 						RemoveEvent: true,
 						Match: EventMatchRules{
-							Summary: StringMatchRule{Prefix: "Canceled: "},
+							Summary: StringMatchRuleConfig{Prefix: "Canceled: "},
 						},
 					},
 				}),
@@ -113,7 +113,7 @@ func TestCalendarProcessEvent(t *testing.T) {
 						Description: "Remove canceled events",
 						RemoveEvent: true,
 						Match: EventMatchRules{
-							Summary: StringMatchRule{Prefix: "Canceled: "},
+							Summary: StringMatchRuleConfig{Prefix: "Canceled: "},
 						},
 					},
 				}),
@@ -129,7 +129,7 @@ func TestCalendarProcessEvent(t *testing.T) {
 					{
 						Description: "Rename on-call events",
 						Match: EventMatchRules{
-							Summary: StringMatchRule{Contains: "schedule: oncall"},
+							Summary: StringMatchRuleConfig{Contains: "schedule: oncall"},
 						},
 						Transform: EventTransformRules{
 							Summary: StringTransformRule{Replace: "On-Call"},
@@ -176,7 +176,7 @@ func TestCalendarProcessEvent(t *testing.T) {
 						Description: "Remove transformed event",
 						RemoveEvent: true,
 						Match: EventMatchRules{
-							Summary: StringMatchRule{Contains: "Remove"},
+							Summary: StringMatchRuleConfig{Contains: "Remove"},
 						},
 					},
 				}),

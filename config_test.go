@@ -200,7 +200,7 @@ func TestConfigRuntimeConfigRejectsInvalidRegex(t *testing.T) {
 					{
 						Description: "invalid regex",
 						Match: EventMatchRules{
-							Summary: StringMatchRule{RegexMatch: "["},
+							Summary: StringMatchRuleConfig{RegexMatch: "["},
 						},
 					},
 				},

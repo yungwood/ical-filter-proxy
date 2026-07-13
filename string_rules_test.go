@@ -2,40 +2,40 @@ package main
 
 import "testing"
 
-func TestStringMatchRuleHasConditions(t *testing.T) {
+func TestStringMatchRuleConfigHasConditions(t *testing.T) {
 	tests := []struct {
 		name string
-		rule StringMatchRule
+		rule StringMatchRuleConfig
 		want bool
 	}{
 		{
 			name: "empty rule",
-			rule: StringMatchRule{},
+			rule: StringMatchRuleConfig{},
 			want: false,
 		},
 		{
 			name: "empty condition",
-			rule: StringMatchRule{Null: true},
+			rule: StringMatchRuleConfig{Null: true},
 			want: true,
 		},
 		{
 			name: "contains condition",
-			rule: StringMatchRule{Contains: "event"},
+			rule: StringMatchRuleConfig{Contains: "event"},
 			want: true,
 		},
 		{
 			name: "prefix condition",
-			rule: StringMatchRule{Prefix: "event"},
+			rule: StringMatchRuleConfig{Prefix: "event"},
 			want: true,
 		},
 		{
 			name: "suffix condition",
-			rule: StringMatchRule{Suffix: "event"},
+			rule: StringMatchRuleConfig{Suffix: "event"},
 			want: true,
 		},
 		{
 			name: "regex condition",
-			rule: StringMatchRule{RegexMatch: "event"},
+			rule: StringMatchRuleConfig{RegexMatch: "event"},
 			want: true,
 		},
 	}
@@ -50,25 +50,25 @@ func TestStringMatchRuleHasConditions(t *testing.T) {
 	}
 }
 
-func TestStringMatchRuleValidate(t *testing.T) {
+func TestStringMatchRuleConfigValidate(t *testing.T) {
 	tests := []struct {
 		name    string
-		rule    StringMatchRule
+		rule    StringMatchRuleConfig
 		wantErr bool
 	}{
 		{
 			name:    "empty rule is valid",
-			rule:    StringMatchRule{},
+			rule:    StringMatchRuleConfig{},
 			wantErr: false,
 		},
 		{
 			name:    "valid regex is valid",
-			rule:    StringMatchRule{RegexMatch: `cal.*event`},
+			rule:    StringMatchRuleConfig{RegexMatch: `cal.*event`},
 			wantErr: false,
 		},
 		{
 			name:    "invalid regex is invalid",
-			rule:    StringMatchRule{RegexMatch: `[`},
+			rule:    StringMatchRuleConfig{RegexMatch: `[`},
 			wantErr: true,
 		},
 	}
@@ -83,8 +83,8 @@ func TestStringMatchRuleValidate(t *testing.T) {
 	}
 }
 
-func TestStringMatchRuleCompile(t *testing.T) {
-	rule, err := (StringMatchRule{
+func TestStringMatchRuleConfigCompile(t *testing.T) {
+	rule, err := (StringMatchRuleConfig{
 		Contains:   "calendar",
 		Prefix:     "team",
 		Suffix:     "event",
@@ -102,107 +102,107 @@ func TestStringMatchRuleCompile(t *testing.T) {
 	}
 }
 
-func TestStringMatchRuleCompileInvalidRegex(t *testing.T) {
-	_, err := (StringMatchRule{RegexMatch: `[`}).compile()
+func TestStringMatchRuleConfigCompileInvalidRegex(t *testing.T) {
+	_, err := (StringMatchRuleConfig{RegexMatch: `[`}).compile()
 	if err == nil {
 		t.Fatal("compile() returned nil error")
 	}
 }
 
-func TestStringMatchRuleMatchesString(t *testing.T) {
+func TestStringMatchRuleConfigMatchesString(t *testing.T) {
 	tests := []struct {
 		name string
-		rule StringMatchRule
+		rule StringMatchRuleConfig
 		data string
 		want bool
 	}{
 		{
 			name: "empty rule matches non-empty string",
-			rule: StringMatchRule{},
+			rule: StringMatchRuleConfig{},
 			data: "calendar event",
 			want: true,
 		},
 		{
 			name: "empty rule matches empty string",
-			rule: StringMatchRule{},
+			rule: StringMatchRuleConfig{},
 			data: "",
 			want: true,
 		},
 		{
 			name: "empty condition matches empty string",
-			rule: StringMatchRule{Null: true},
+			rule: StringMatchRuleConfig{Null: true},
 			data: "",
 			want: true,
 		},
 		{
 			name: "empty condition rejects non-empty string",
-			rule: StringMatchRule{Null: true},
+			rule: StringMatchRuleConfig{Null: true},
 			data: "calendar event",
 			want: false,
 		},
 		{
 			name: "contains matches",
-			rule: StringMatchRule{Contains: "event"},
+			rule: StringMatchRuleConfig{Contains: "event"},
 			data: "calendar event",
 			want: true,
 		},
 		{
 			name: "contains rejects missing value",
-			rule: StringMatchRule{Contains: "shift"},
+			rule: StringMatchRuleConfig{Contains: "shift"},
 			data: "calendar event",
 			want: false,
 		},
 		{
 			name: "contains rejects empty data",
-			rule: StringMatchRule{Contains: "event"},
+			rule: StringMatchRuleConfig{Contains: "event"},
 			data: "",
 			want: false,
 		},
 		{
 			name: "prefix matches",
-			rule: StringMatchRule{Prefix: "calendar"},
+			rule: StringMatchRuleConfig{Prefix: "calendar"},
 			data: "calendar event",
 			want: true,
 		},
 		{
 			name: "prefix rejects missing prefix",
-			rule: StringMatchRule{Prefix: "event"},
+			rule: StringMatchRuleConfig{Prefix: "event"},
 			data: "calendar event",
 			want: false,
 		},
 		{
 			name: "suffix matches",
-			rule: StringMatchRule{Suffix: "event"},
+			rule: StringMatchRuleConfig{Suffix: "event"},
 			data: "calendar event",
 			want: true,
 		},
 		{
 			name: "suffix rejects missing suffix",
-			rule: StringMatchRule{Suffix: "calendar"},
+			rule: StringMatchRuleConfig{Suffix: "calendar"},
 			data: "calendar event",
 			want: false,
 		},
 		{
 			name: "regex matches",
-			rule: StringMatchRule{RegexMatch: `cal.*event`},
+			rule: StringMatchRuleConfig{RegexMatch: `cal.*event`},
 			data: "calendar event",
 			want: true,
 		},
 		{
 			name: "regex rejects missing match",
-			rule: StringMatchRule{RegexMatch: `^event`},
+			rule: StringMatchRuleConfig{RegexMatch: `^event`},
 			data: "calendar event",
 			want: false,
 		},
 		{
 			name: "invalid regex rejects",
-			rule: StringMatchRule{RegexMatch: `[`},
+			rule: StringMatchRuleConfig{RegexMatch: `[`},
 			data: "calendar event",
 			want: false,
 		},
 		{
 			name: "combined conditions all match",
-			rule: StringMatchRule{
+			rule: StringMatchRuleConfig{
 				Contains:   "calendar",
 				Prefix:     "team",
 				Suffix:     "event",
@@ -213,7 +213,7 @@ func TestStringMatchRuleMatchesString(t *testing.T) {
 		},
 		{
 			name: "combined conditions reject partial match",
-			rule: StringMatchRule{
+			rule: StringMatchRuleConfig{
 				Contains:   "calendar",
 				Prefix:     "team",
 				Suffix:     "shift",
