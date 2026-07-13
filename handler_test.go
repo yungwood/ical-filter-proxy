@@ -100,6 +100,43 @@ func TestCalendarFeedHandlerSuccess(t *testing.T) {
 	}
 }
 
+func TestCalendarFeedHandlerPublicCalendarIgnoresToken(t *testing.T) {
+	tests := []struct {
+		name   string
+		target string
+	}{
+		{
+			name:   "no token",
+			target: "/calendars/public/feed",
+		},
+		{
+			name:   "wrong token",
+			target: "/calendars/public/feed?token=wrong",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := calendarFeedHandlerWithFetch(
+				"/calendars/public/feed",
+				CalendarConfig{Name: "public", Public: true},
+				func(context.Context) ([]byte, error) {
+					return []byte("BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n"), nil
+				},
+			)
+
+			req := testRequest(t, tt.target)
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			if rr.Code != http.StatusOK {
+				t.Fatalf("status = %d, want %d", rr.Code, http.StatusOK)
+			}
+		})
+	}
+}
+
 func TestCalendarFeedHandlerUpstreamError(t *testing.T) {
 	handler := calendarFeedHandlerWithFetch(
 		"/calendars/private/feed",

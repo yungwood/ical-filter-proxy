@@ -38,6 +38,11 @@ func (config *Config) LoadConfig(file string) bool {
 		// grab pointer so we can mutate values when loading from file
 		calendarConfig := &config.Calendars[i]
 
+		if calendarConfig.Public && (calendarConfig.Token != "" || calendarConfig.TokenFile != "") {
+			slog.Error("Public calendar cannot define token or token_file", "calendar", calendarConfig.Name)
+			return false
+		}
+
 		// check if url should be loaded from file
 		if calendarConfig.FeedURLFile != "" {
 			calendarConfig.FeedURL, err = readSecretFile(calendarConfig.FeedURLFile)
@@ -62,14 +67,11 @@ func (config *Config) LoadConfig(file string) bool {
 			}
 		}
 
-		// Check to see if auth is disabled (token not set)
-		// If so print a warning message and make sure public is enabled in config
-		if calendarConfig.Token == "" {
-			if !calendarConfig.Public {
-				slog.Error("Calendar cannot have authentication disabled without public option enabled in the configuration", "calendar", calendarConfig.Name)
-				return false
-			}
+		if calendarConfig.Public {
 			slog.Warn("Calendar has no token set. Authentication will be disabled", "calendar", calendarConfig.Name)
+		} else if calendarConfig.Token == "" {
+			slog.Error("Private calendar must define token or token_file", "calendar", calendarConfig.Name)
+			return false
 		}
 
 		// Print a warning if the calendar has no filters
