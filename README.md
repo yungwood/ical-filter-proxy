@@ -222,6 +222,8 @@ These match conditions are available for a string value:
 
 - `empty` - if `true`, property must be absent or empty
 - `contains` - property must contain this value
+- `contains_any` - property must contain at least one value from this list
+- `contains_all` - property must contain every value from this list
 - `prefix` - property must start with this value
 - `suffix` - property must end with this value
 - `regex` - property must match the given regular expression. Invalid regular expressions are rejected when the configuration is loaded.
