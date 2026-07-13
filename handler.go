@@ -7,6 +7,11 @@ import (
 	"net/http"
 )
 
+const (
+	calendarContentType = "text/calendar; charset=utf-8"
+	cacheControlHeader  = "no-store"
+)
+
 type calendarFetchFunc func(context.Context) ([]byte, error)
 
 func calendarFeedHandler(httpPath string, calendarConfig CalendarConfig) http.HandlerFunc {
@@ -15,6 +20,8 @@ func calendarFeedHandler(httpPath string, calendarConfig CalendarConfig) http.Ha
 
 func calendarFeedHandlerWithFetch(httpPath string, calendarConfig CalendarConfig, fetch calendarFetchFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		setCommonResponseHeaders(w)
+
 		slog.Debug("Received request for calendar", "http_path", httpPath, "calendar", calendarConfig.Name, "client_ip", r.RemoteAddr)
 
 		if !calendarConfig.Public && !tokenMatches(r.URL.Query().Get("token"), calendarConfig.Token) {
@@ -32,7 +39,7 @@ func calendarFeedHandlerWithFetch(httpPath string, calendarConfig CalendarConfig
 		}
 
 		// return calendar
-		w.Header().Set("Content-Type", "text/calendar")
+		w.Header().Set("Content-Type", calendarContentType)
 		_, err = w.Write(feed)
 		if err != nil {
 			slog.Error("Error writing response", "error", err)
@@ -42,6 +49,11 @@ func calendarFeedHandlerWithFetch(httpPath string, calendarConfig CalendarConfig
 
 		slog.Info("Calendar request processed", "http_path", httpPath, "calendar", calendarConfig.Name, "client_ip", r.RemoteAddr)
 	}
+}
+
+func setCommonResponseHeaders(w http.ResponseWriter) {
+	w.Header().Set("Cache-Control", cacheControlHeader)
+	w.Header().Set("X-Content-Type-Options", "nosniff")
 }
 
 func tokenMatches(token string, expectedToken string) bool {

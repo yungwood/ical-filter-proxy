@@ -70,6 +70,7 @@ func TestCalendarFeedHandlerUnauthorized(t *testing.T) {
 	if rr.Code != http.StatusUnauthorized {
 		t.Fatalf("status = %d, want %d", rr.Code, http.StatusUnauthorized)
 	}
+	assertCommonResponseHeaders(t, rr)
 	if fetchCalled {
 		t.Fatal("fetch was called for unauthorized request")
 	}
@@ -92,8 +93,9 @@ func TestCalendarFeedHandlerSuccess(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", rr.Code, http.StatusOK)
 	}
-	if got := rr.Header().Get("Content-Type"); got != "text/calendar" {
-		t.Fatalf("Content-Type = %q, want text/calendar", got)
+	assertCommonResponseHeaders(t, rr)
+	if got := rr.Header().Get("Content-Type"); got != calendarContentType {
+		t.Fatalf("Content-Type = %q, want %q", got, calendarContentType)
 	}
 	if got := rr.Body.String(); got != "BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n" {
 		t.Fatalf("body = %q, want calendar feed", got)
@@ -154,6 +156,7 @@ func TestCalendarFeedHandlerUpstreamError(t *testing.T) {
 	if rr.Code != http.StatusBadGateway {
 		t.Fatalf("status = %d, want %d", rr.Code, http.StatusBadGateway)
 	}
+	assertCommonResponseHeaders(t, rr)
 }
 
 func testRequest(t *testing.T, target string) *http.Request {
@@ -165,4 +168,15 @@ func testRequest(t *testing.T, target string) *http.Request {
 	}
 
 	return req
+}
+
+func assertCommonResponseHeaders(t *testing.T, rr *httptest.ResponseRecorder) {
+	t.Helper()
+
+	if got := rr.Header().Get("Cache-Control"); got != cacheControlHeader {
+		t.Fatalf("Cache-Control = %q, want %q", got, cacheControlHeader)
+	}
+	if got := rr.Header().Get("X-Content-Type-Options"); got != "nosniff" {
+		t.Fatalf("X-Content-Type-Options = %q, want nosniff", got)
+	}
 }
