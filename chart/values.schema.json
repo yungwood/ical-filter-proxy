@@ -68,6 +68,18 @@
                             "contains": {
                               "type": "string"
                             },
+                            "contains_any": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "contains_all": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
                             "regex": {
                               "type": "string"
                             }
@@ -88,6 +100,18 @@
                             },
                             "contains": {
                               "type": "string"
+                            },
+                            "contains_any": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "contains_all": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             },
                             "regex": {
                               "type": "string"
@@ -110,6 +134,18 @@
                             "contains": {
                               "type": "string"
                             },
+                            "contains_any": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "contains_all": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
                             "regex": {
                               "type": "string"
                             }
@@ -130,6 +166,18 @@
                             },
                             "contains": {
                               "type": "string"
+                            },
+                            "contains_any": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "contains_all": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             },
                             "regex": {
                               "type": "string"

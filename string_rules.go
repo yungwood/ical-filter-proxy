@@ -9,28 +9,41 @@ import (
 // StringMatchRuleConfig is the YAML-backed string match configuration. Regex values
 // are compiled into StringMatchRule during runtime config preparation.
 type StringMatchRuleConfig struct {
-	Null       bool   `yaml:"empty"`
-	Contains   string `yaml:"contains"`
-	Prefix     string `yaml:"prefix"`
-	Suffix     string `yaml:"suffix"`
-	RegexMatch string `yaml:"regex"`
+	Null        bool     `yaml:"empty"`
+	Contains    string   `yaml:"contains"`
+	ContainsAny []string `yaml:"contains_any"`
+	ContainsAll []string `yaml:"contains_all"`
+	Prefix      string   `yaml:"prefix"`
+	Suffix      string   `yaml:"suffix"`
+	RegexMatch  string   `yaml:"regex"`
 }
 
 // Returns true if StringMatchRuleConfig has any conditions
 func (smr StringMatchRuleConfig) hasConditions() bool {
 	return smr.Null ||
 		smr.Contains != "" ||
+		len(smr.ContainsAny) > 0 ||
+		len(smr.ContainsAll) > 0 ||
 		smr.Prefix != "" ||
 		smr.Suffix != "" ||
 		smr.RegexMatch != ""
 }
 
 func (smr StringMatchRuleConfig) compile() (StringMatchRule, error) {
+	if err := validateStringList("contains_any", smr.ContainsAny); err != nil {
+		return StringMatchRule{}, err
+	}
+	if err := validateStringList("contains_all", smr.ContainsAll); err != nil {
+		return StringMatchRule{}, err
+	}
+
 	rule := StringMatchRule{
-		Null:     smr.Null,
-		Contains: smr.Contains,
-		Prefix:   smr.Prefix,
-		Suffix:   smr.Suffix,
+		Null:        smr.Null,
+		Contains:    smr.Contains,
+		ContainsAny: append([]string(nil), smr.ContainsAny...),
+		ContainsAll: append([]string(nil), smr.ContainsAll...),
+		Prefix:      smr.Prefix,
+		Suffix:      smr.Suffix,
 	}
 
 	if smr.RegexMatch == "" {
@@ -46,6 +59,16 @@ func (smr StringMatchRuleConfig) compile() (StringMatchRule, error) {
 	return rule, nil
 }
 
+func validateStringList(name string, values []string) error {
+	for i, value := range values {
+		if value == "" {
+			return fmt.Errorf("%s[%d] must not be empty", name, i)
+		}
+	}
+
+	return nil
+}
+
 // Returns true if a given string (data) matches ALL StringMatchRuleConfig conditions
 func (smr StringMatchRuleConfig) matchesString(data string) bool {
 	rule, err := smr.compile()
@@ -59,16 +82,20 @@ func (smr StringMatchRuleConfig) matchesString(data string) bool {
 // StringMatchRule is the runtime string matcher. Regex is compiled once
 // so event processing can match without reparsing configuration.
 type StringMatchRule struct {
-	Null     bool
-	Contains string
-	Prefix   string
-	Suffix   string
-	Regex    *regexp.Regexp
+	Null        bool
+	Contains    string
+	ContainsAny []string
+	ContainsAll []string
+	Prefix      string
+	Suffix      string
+	Regex       *regexp.Regexp
 }
 
 func (rule StringMatchRule) hasConditions() bool {
 	return rule.Null ||
 		rule.Contains != "" ||
+		len(rule.ContainsAny) > 0 ||
+		len(rule.ContainsAll) > 0 ||
 		rule.Prefix != "" ||
 		rule.Suffix != "" ||
 		rule.Regex != nil
@@ -83,6 +110,33 @@ func (rule StringMatchRule) matchesString(data string) bool {
 	if rule.Contains != "" {
 		if data == "" || !strings.Contains(data, rule.Contains) {
 			return false
+		}
+	}
+	// check contains_any if set
+	if len(rule.ContainsAny) > 0 {
+		if data == "" {
+			return false
+		}
+		containsAny := false
+		for _, value := range rule.ContainsAny {
+			if strings.Contains(data, value) {
+				containsAny = true
+				break
+			}
+		}
+		if !containsAny {
+			return false
+		}
+	}
+	// check contains_all if set
+	if len(rule.ContainsAll) > 0 {
+		if data == "" {
+			return false
+		}
+		for _, value := range rule.ContainsAll {
+			if !strings.Contains(data, value) {
+				return false
+			}
 		}
 	}
 	// check prefix if set
