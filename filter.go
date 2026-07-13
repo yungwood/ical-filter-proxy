@@ -9,11 +9,11 @@ import (
 // FilterConfig is the YAML-backed filter configuration. It is compiled into
 // Filter before runtime event processing.
 type FilterConfig struct {
-	Description string              `yaml:"description"`
-	RemoveEvent bool                `yaml:"remove"`
-	Stop        bool                `yaml:"stop"`
-	Match       EventMatchRules     `yaml:"match"`
-	Transform   EventTransformRules `yaml:"transform"`
+	Description string                `yaml:"description"`
+	RemoveEvent bool                  `yaml:"remove"`
+	Stop        bool                  `yaml:"stop"`
+	Match       EventMatchRulesConfig `yaml:"match"`
+	Transform   EventTransformRules   `yaml:"transform"`
 }
 
 // Filter is the runtime filter representation. Match rules are compiled
@@ -23,7 +23,7 @@ type Filter struct {
 	Description string
 	RemoveEvent bool
 	Stop        bool
-	Match       CompiledEventMatchRules
+	Match       EventMatchRules
 	Transform   EventTransformRules
 }
 
@@ -85,42 +85,42 @@ func (filter Filter) transformEvent(event *ics.VEvent) {
 	}
 }
 
-// EventMatchRules contains YAML-backed match rules for VEvent properties.
-type EventMatchRules struct {
+// EventMatchRulesConfig contains YAML-backed match rules for VEvent properties.
+type EventMatchRulesConfig struct {
 	Summary     StringMatchRuleConfig `yaml:"summary"`
 	Description StringMatchRuleConfig `yaml:"description"`
 	Location    StringMatchRuleConfig `yaml:"location"`
 	URL         StringMatchRuleConfig `yaml:"url"`
 }
 
-// CompiledEventMatchRules contains runtime-ready match rules for VEvent
+// EventMatchRules contains runtime-ready match rules for VEvent
 // properties.
-type CompiledEventMatchRules struct {
+type EventMatchRules struct {
 	Summary     StringMatchRule
 	Description StringMatchRule
 	Location    StringMatchRule
 	URL         StringMatchRule
 }
 
-func (rules EventMatchRules) compile() (CompiledEventMatchRules, error) {
+func (rules EventMatchRulesConfig) compile() (EventMatchRules, error) {
 	summary, err := rules.Summary.compile()
 	if err != nil {
-		return CompiledEventMatchRules{}, err
+		return EventMatchRules{}, err
 	}
 	description, err := rules.Description.compile()
 	if err != nil {
-		return CompiledEventMatchRules{}, err
+		return EventMatchRules{}, err
 	}
 	location, err := rules.Location.compile()
 	if err != nil {
-		return CompiledEventMatchRules{}, err
+		return EventMatchRules{}, err
 	}
 	url, err := rules.URL.compile()
 	if err != nil {
-		return CompiledEventMatchRules{}, err
+		return EventMatchRules{}, err
 	}
 
-	return CompiledEventMatchRules{
+	return EventMatchRules{
 		Summary:     summary,
 		Description: description,
 		Location:    location,
