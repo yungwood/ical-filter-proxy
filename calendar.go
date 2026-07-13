@@ -10,10 +10,9 @@ import (
 	ics "github.com/arran4/golang-ical"
 )
 
-// All structs defined in this file are used to unmarshall yaml configuration and
-// provide helper functions that are used to fetch and filter events
-
-// CalendarConfig definition
+// CalendarConfig is the YAML-backed calendar configuration. It is converted
+// into Calendar before request handling so runtime code uses compiled filters
+// and resolved secret values.
 type CalendarConfig struct {
 	Name        string   `yaml:"name"`
 	PublishName string   `yaml:"publish_name"`
@@ -29,6 +28,9 @@ type RuntimeConfig struct {
 	Calendars []Calendar
 }
 
+// Calendar is the runtime calendar representation used by handlers. It should
+// contain values that are ready to execute, not file paths or raw rule strings
+// that still need to be resolved.
 type Calendar struct {
 	Name        string
 	PublishName string

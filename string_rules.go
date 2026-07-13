@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-// StringMatchRule defines match rules for VEvent properties with string values
+// StringMatchRule is the YAML-backed string match configuration. Regex values
+// are compiled into CompiledStringMatchRule during runtime config preparation.
 type StringMatchRule struct {
 	Null       bool   `yaml:"empty"`
 	Contains   string `yaml:"contains"`
@@ -60,6 +61,8 @@ func (smr StringMatchRule) matchesString(data string) bool {
 	return rule.matchesString(data)
 }
 
+// CompiledStringMatchRule is the runtime string matcher. Regex is compiled once
+// so event processing can match without reparsing configuration.
 type CompiledStringMatchRule struct {
 	Null     bool
 	Contains string
