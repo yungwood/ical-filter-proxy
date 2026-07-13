@@ -59,7 +59,7 @@ jobs:
             version=${short_sha}
           fi
 
-          echo "VERSION=${version}" >> $GITHUB_ENV
+          echo "VERSION=${version}" >> "$GITHUB_ENV"
 
       - name: Docker meta
         id: meta
