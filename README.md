@@ -166,7 +166,9 @@ calendars:
 The service exposes a simple HTTP API for accessing the proxied calendars.
 The base URL is `http://<host>:<port>/calendars/<calendar_name>/feed`.
 
-Prometheus metrics can be enabled with `-metrics`, which exposes `/metrics`. Metrics use aggregate labels by default; `-metrics-calendar-labels` additionally exposes per-calendar metrics labelled by calendar name.
+Liveness and readiness endpoints are exposed at `/liveness` and `/readiness`. By default these are served on the main listener with the calendar endpoints. Set `-management-address`, such as `-management-address 127.0.0.1:9090`, to serve liveness, readiness, and metrics on a separate management listener instead.
+
+Prometheus metrics can be enabled with `-metrics`, which exposes `/metrics`. Metrics use aggregate labels by default; `-metrics-calendar-labels` additionally exposes per-calendar metrics labelled by calendar name. If metrics are enabled without `-management-address`, the metrics endpoint is exposed on the main listener and the service logs a warning.
 
 ### Filters
 
