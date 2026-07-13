@@ -331,6 +331,18 @@
       ],
       "type": "object"
     },
+    "env": {
+      "items": {
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "envFrom": {
+      "items": {
+        "type": "object"
+      },
+      "type": "array"
+    },
     "extraResources": {
       "type": "array",
       "items": {
@@ -519,6 +531,8 @@
   "required": [
     "app",
     "command",
+    "env",
+    "envFrom",
     "image",
     "config",
     "extraResources",
