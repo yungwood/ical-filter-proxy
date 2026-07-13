@@ -80,3 +80,56 @@ func TestFetchUpstreamCalendarUsesContext(t *testing.T) {
 		t.Fatalf("error = %v, want context.Canceled", err)
 	}
 }
+
+func TestRedactURL(t *testing.T) {
+	tests := []struct {
+		name   string
+		rawURL string
+		want   string
+	}{
+		{
+			name:   "redacts path token",
+			rawURL: "https://calendar.example.com/secret/path/feed.ics",
+			want:   "https://calendar.example.com/...",
+		},
+		{
+			name:   "preserves query presence",
+			rawURL: "https://calendar.example.com/secret/path/feed.ics?token=secret",
+			want:   "https://calendar.example.com/...?REDACTED",
+		},
+		{
+			name:   "preserves fragment presence",
+			rawURL: "https://calendar.example.com/secret/path/feed.ics#secret",
+			want:   "https://calendar.example.com/...#REDACTED",
+		},
+		{
+			name:   "preserves query and fragment presence",
+			rawURL: "https://calendar.example.com/secret/path/feed.ics?token=secret#secret",
+			want:   "https://calendar.example.com/...?REDACTED#REDACTED",
+		},
+		{
+			name:   "preserves host port",
+			rawURL: "http://localhost:8080/secret",
+			want:   "http://localhost:8080/...",
+		},
+		{
+			name:   "rejects relative url",
+			rawURL: "/secret/path",
+			want:   "<invalid-url>",
+		},
+		{
+			name:   "rejects malformed url",
+			rawURL: "://bad-url",
+			want:   "<invalid-url>",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := redactURL(tt.rawURL)
+			if got != tt.want {
+				t.Fatalf("redactURL(%q) = %q, want %q", tt.rawURL, got, tt.want)
+			}
+		})
+	}
+}
