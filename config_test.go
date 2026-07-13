@@ -57,6 +57,28 @@ calendars:
 			want: false,
 		},
 		{
+			name: "public calendar with token",
+			yaml: `
+calendars:
+  - name: public
+    public: true
+    token: secret
+    feed_url: https://example.com/feed.ics
+`,
+			want: false,
+		},
+		{
+			name: "public calendar with token_file",
+			yaml: `
+calendars:
+  - name: public
+    public: true
+    token_file: /run/secrets/token
+    feed_url: https://example.com/feed.ics
+`,
+			want: false,
+		},
+		{
 			name: "invalid yaml",
 			yaml: `
 calendars:

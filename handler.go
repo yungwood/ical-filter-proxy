@@ -17,9 +17,7 @@ func calendarFeedHandlerWithFetch(httpPath string, calendarConfig CalendarConfig
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Debug("Received request for calendar", "http_path", httpPath, "calendar", calendarConfig.Name, "client_ip", r.RemoteAddr)
 
-		// validate token
-		token := r.URL.Query().Get("token")
-		if !tokenMatches(token, calendarConfig.Token) {
+		if !calendarConfig.Public && !tokenMatches(r.URL.Query().Get("token"), calendarConfig.Token) {
 			slog.Warn("Unauthorized access attempt", "client_ip", r.RemoteAddr)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
