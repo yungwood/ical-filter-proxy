@@ -443,6 +443,45 @@
       "properties": {},
       "type": "object"
     },
+    "management": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "service": {
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "port": {
+              "maximum": 65535,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "type": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "enabled",
+            "port",
+            "type"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "address",
+        "enabled",
+        "service"
+      ],
+      "type": "object"
+    },
     "nameOverride": {
       "type": "string"
     },
@@ -537,6 +576,7 @@
     "config",
     "extraResources",
     "livenessProbe",
+    "management",
     "readinessProbe",
     "replicaCount",
     "revisionHistoryLimit"
