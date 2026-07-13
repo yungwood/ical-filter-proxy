@@ -70,3 +70,27 @@ type StringTransformRule struct {
 	Prefix  string `yaml:"prefix"`
 	Suffix  string `yaml:"suffix"`
 }
+
+func (str StringTransformRule) hasActions() bool {
+	return str.Replace != "" ||
+		str.Remove ||
+		str.Prefix != "" ||
+		str.Suffix != ""
+}
+
+func applyStringTransform(value string, rule StringTransformRule) string {
+	if rule.Remove {
+		return ""
+	}
+	if rule.Replace != "" {
+		return rule.Replace
+	}
+	if rule.Prefix != "" {
+		value = rule.Prefix + value
+	}
+	if rule.Suffix != "" {
+		value += rule.Suffix
+	}
+
+	return value
+}

@@ -72,32 +72,14 @@ func (filter Filter) transformEvent(event *ics.VEvent) {
 
 	// Summary transformations
 	eventSummaryValue := eventStringProperty(*event, ics.ComponentPropertySummary)
-	if filter.Transform.Summary.Remove {
-		event.SetSummary("")
-	}
-	if filter.Transform.Summary.Replace != "" {
-		event.SetSummary(filter.Transform.Summary.Replace)
-	}
-	if filter.Transform.Summary.Prefix != "" {
-		event.SetSummary(filter.Transform.Summary.Prefix + eventSummaryValue)
-	}
-	if filter.Transform.Summary.Suffix != "" {
-		event.SetSummary(eventSummaryValue + filter.Transform.Summary.Suffix)
+	if filter.Transform.Summary.hasActions() {
+		event.SetSummary(applyStringTransform(eventSummaryValue, filter.Transform.Summary))
 	}
 
 	// Description transformations
 	eventDescriptionValue := eventStringProperty(*event, ics.ComponentPropertyDescription)
-	if filter.Transform.Description.Remove {
-		event.SetDescription("")
-	}
-	if filter.Transform.Description.Replace != "" {
-		event.SetDescription(filter.Transform.Description.Replace)
-	}
-	if filter.Transform.Description.Prefix != "" {
-		event.SetDescription(filter.Transform.Description.Prefix + eventDescriptionValue)
-	}
-	if filter.Transform.Description.Suffix != "" {
-		event.SetDescription(eventDescriptionValue + filter.Transform.Description.Suffix)
+	if filter.Transform.Description.hasActions() {
+		event.SetDescription(applyStringTransform(eventDescriptionValue, filter.Transform.Description))
 	}
 
 	// Location transformations

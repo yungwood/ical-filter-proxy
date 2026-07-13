@@ -192,8 +192,8 @@ func TestFilterTransformEvent(t *testing.T) {
 				Description: StringTransformRule{Prefix: "(", Suffix: ")"},
 			},
 			want: map[ics.ComponentProperty]string{
-				ics.ComponentPropertySummary:     "original summary]",
-				ics.ComponentPropertyDescription: "original description)",
+				ics.ComponentPropertySummary:     "[original summary]",
+				ics.ComponentPropertyDescription: "(original description)",
 				ics.ComponentPropertyLocation:    "original location",
 				ics.ComponentPropertyUrl:         "https://example.com/original",
 			},
