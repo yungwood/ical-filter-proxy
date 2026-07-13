@@ -47,29 +47,14 @@ func (filter Filter) matchesEvent(event ics.VEvent) bool {
 
 // Applies filter transformations to a VEvent pointer
 func (filter Filter) transformEvent(event *ics.VEvent) {
-
-	// Summary transformations
-	eventSummaryValue := eventStringProperty(*event, ics.ComponentPropertySummary)
-	if filter.Transform.Summary.hasActions() {
-		event.SetSummary(applyStringTransform(eventSummaryValue, filter.Transform.Summary))
+	stringTransforms := []eventStringTransform{
+		{property: ics.ComponentPropertySummary, rule: filter.Transform.Summary, set: func(value string) { event.SetSummary(value) }},
+		{property: ics.ComponentPropertyDescription, rule: filter.Transform.Description, set: func(value string) { event.SetDescription(value) }},
+		{property: ics.ComponentPropertyLocation, rule: filter.Transform.Location, set: func(value string) { event.SetLocation(value) }},
+		{property: ics.ComponentPropertyUrl, rule: filter.Transform.URL, set: func(value string) { event.SetURL(value) }},
 	}
-
-	// Description transformations
-	eventDescriptionValue := eventStringProperty(*event, ics.ComponentPropertyDescription)
-	if filter.Transform.Description.hasActions() {
-		event.SetDescription(applyStringTransform(eventDescriptionValue, filter.Transform.Description))
-	}
-
-	// Location transformations
-	eventLocationValue := eventStringProperty(*event, ics.ComponentPropertyLocation)
-	if filter.Transform.Location.hasActions() {
-		event.SetLocation(applyStringTransform(eventLocationValue, filter.Transform.Location))
-	}
-
-	// URL transformations
-	eventURLValue := eventStringProperty(*event, ics.ComponentPropertyUrl)
-	if filter.Transform.URL.hasActions() {
-		event.SetURL(applyStringTransform(eventURLValue, filter.Transform.URL))
+	for _, transform := range stringTransforms {
+		applyEventStringTransform(*event, transform)
 	}
 }
 
@@ -95,12 +80,27 @@ type eventStringMatch struct {
 	rule     StringMatchRule
 }
 
+type eventStringTransform struct {
+	property ics.ComponentProperty
+	rule     StringTransformRule
+	set      func(string)
+}
+
 func eventStringPropertyMatches(event ics.VEvent, property ics.ComponentProperty, rule StringMatchRule) bool {
 	if !rule.hasConditions() {
 		return true
 	}
 
 	return rule.matchesString(eventStringProperty(event, property))
+}
+
+func applyEventStringTransform(event ics.VEvent, transform eventStringTransform) {
+	if !transform.rule.hasActions() {
+		return
+	}
+
+	value := eventStringProperty(event, transform.property)
+	transform.set(applyStringTransform(value, transform.rule))
 }
 
 func eventStringProperty(event ics.VEvent, property ics.ComponentProperty) string {

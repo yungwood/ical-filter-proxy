@@ -197,6 +197,59 @@ func TestEventStringPropertyMatches(t *testing.T) {
 	}
 }
 
+func TestApplyEventStringTransform(t *testing.T) {
+	t.Run("empty transform does not call setter", func(t *testing.T) {
+		called := false
+		event := testEvent("team calendar event")
+
+		applyEventStringTransform(*event, eventStringTransform{
+			property: ics.ComponentPropertySummary,
+			rule:     StringTransformRule{},
+			set: func(_ string) {
+				called = true
+			},
+		})
+
+		if called {
+			t.Fatal("setter called for empty transform")
+		}
+	})
+
+	t.Run("transform uses existing property value", func(t *testing.T) {
+		var got string
+		event := testEvent("team calendar event")
+
+		applyEventStringTransform(*event, eventStringTransform{
+			property: ics.ComponentPropertySummary,
+			rule:     StringTransformRule{Prefix: "[", Suffix: "]"},
+			set: func(value string) {
+				got = value
+			},
+		})
+
+		if got != "[team calendar event]" {
+			t.Fatalf("setter value = %q, want %q", got, "[team calendar event]")
+		}
+	})
+
+	t.Run("missing property transforms empty value", func(t *testing.T) {
+		var got string
+		event := testEvent("team calendar event")
+
+		applyEventStringTransform(*event, eventStringTransform{
+			property: ics.ComponentPropertyDescription,
+			rule:     StringTransformRule{Prefix: "missing: "},
+			set: func(value string) {
+				got = value
+			},
+		})
+
+		if got != "missing: " {
+			t.Fatalf("setter value = %q, want %q", got, "missing: ")
+		}
+	})
+}
+
 func TestFilterTransformEvent(t *testing.T) {
 	tests := []struct {
 		name      string
