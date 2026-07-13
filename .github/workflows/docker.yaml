@@ -15,7 +15,7 @@ on:
       - "*.go"
   pull_request:
     branches:
-      - "master"
+      - "main"
     paths:
       - ".github/workflows/docker.yaml"
       - "Dockerfile"
