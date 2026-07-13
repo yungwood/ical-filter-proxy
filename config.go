@@ -83,6 +83,7 @@ func loadConfig(file string, lookupEnv envLookupFunc) (Config, error) {
 		if !calendarConfig.Public && calendarConfig.Token == "" {
 			return Config{}, fmt.Errorf("calendar %q: private calendar must define token or token_file", calendarConfig.Name)
 		}
+		calendarConfig.UserAgent = strings.TrimSpace(calendarConfig.UserAgent)
 
 	}
 

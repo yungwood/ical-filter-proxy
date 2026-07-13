@@ -24,12 +24,40 @@ func TestFetchUpstreamCalendarSuccess(t *testing.T) {
 	}))
 	defer server.Close()
 
-	got, err := fetchUpstreamCalendar(context.Background(), server.URL)
+	got, err := fetchUpstreamCalendar(context.Background(), server.URL, "")
 	if err != nil {
 		t.Fatalf("fetchUpstreamCalendar returned error: %v", err)
 	}
 	if string(got) != body {
 		t.Fatalf("body = %q, want %q", string(got), body)
+	}
+}
+
+func TestFetchUpstreamCalendarUsesCustomUserAgent(t *testing.T) {
+	body := "BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("User-Agent"); got != "custom-calendar-client/1.0" {
+			t.Fatalf("User-Agent = %q, want custom-calendar-client/1.0", got)
+		}
+		_, _ = w.Write([]byte(body))
+	}))
+	defer server.Close()
+
+	got, err := fetchUpstreamCalendar(context.Background(), server.URL, "custom-calendar-client/1.0")
+	if err != nil {
+		t.Fatalf("fetchUpstreamCalendar returned error: %v", err)
+	}
+	if string(got) != body {
+		t.Fatalf("body = %q, want %q", string(got), body)
+	}
+}
+
+func TestUpstreamUserAgent(t *testing.T) {
+	if got, want := upstreamUserAgent("custom-calendar-client/1.0"), "custom-calendar-client/1.0"; got != want {
+		t.Fatalf("upstreamUserAgent(custom) = %q, want %q", got, want)
+	}
+	if got, want := upstreamUserAgent(""), "ical-filter-proxy/"+version; got != want {
+		t.Fatalf("upstreamUserAgent(empty) = %q, want %q", got, want)
 	}
 }
 
@@ -39,7 +67,7 @@ func TestFetchUpstreamCalendarRejectsNonSuccessStatus(t *testing.T) {
 	}))
 	defer server.Close()
 
-	_, err := fetchUpstreamCalendar(context.Background(), server.URL)
+	_, err := fetchUpstreamCalendar(context.Background(), server.URL, "")
 	if err == nil {
 		t.Fatal("fetchUpstreamCalendar returned nil error")
 	}
@@ -54,7 +82,7 @@ func TestFetchUpstreamCalendarRejectsOversizedBody(t *testing.T) {
 	}))
 	defer server.Close()
 
-	_, err := fetchUpstreamCalendar(context.Background(), server.URL)
+	_, err := fetchUpstreamCalendar(context.Background(), server.URL, "")
 	if err == nil {
 		t.Fatal("fetchUpstreamCalendar returned nil error")
 	}
@@ -72,7 +100,7 @@ func TestFetchUpstreamCalendarUsesContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	_, err := fetchUpstreamCalendar(ctx, server.URL)
+	_, err := fetchUpstreamCalendar(ctx, server.URL, "")
 	if err == nil {
 		t.Fatal("fetchUpstreamCalendar returned nil error")
 	}

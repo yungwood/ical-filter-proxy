@@ -250,6 +250,7 @@ func TestConfigCompile(t *testing.T) {
 				Public:      false,
 				Token:       "secret",
 				TokenFile:   "/run/secrets/token",
+				UserAgent:   "custom-calendar-client/1.0",
 				FeedURL:     "https://example.com/feed.ics",
 				FeedURLFile: "/run/secrets/feed-url",
 				Filters: []FilterConfig{
@@ -285,6 +286,9 @@ func TestConfigCompile(t *testing.T) {
 	}
 	if calendar.Token != "secret" {
 		t.Fatalf("Token = %q, want secret", calendar.Token)
+	}
+	if calendar.UserAgent != "custom-calendar-client/1.0" {
+		t.Fatalf("UserAgent = %q, want custom-calendar-client/1.0", calendar.UserAgent)
 	}
 	if calendar.FeedURL != "https://example.com/feed.ics" {
 		t.Fatalf("FeedURL = %q, want https://example.com/feed.ics", calendar.FeedURL)

@@ -30,6 +30,7 @@ config:
   #   - name: outlook
   #     token: "changeme"
   #     feed_url: "https://outlook.office365.com/owa/calendar/.../reachcalendar.ics"
+  #     user_agent: "ical-filter-proxy"
   #     filters:
   #       - description: "Remove cancelled events"
   #         remove: true

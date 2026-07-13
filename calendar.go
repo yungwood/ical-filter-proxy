@@ -19,6 +19,7 @@ type CalendarConfig struct {
 	Public      bool           `yaml:"public"`
 	Token       string         `yaml:"token"`
 	TokenFile   string         `yaml:"token_file"`
+	UserAgent   string         `yaml:"user_agent"`
 	FeedURL     string         `yaml:"feed_url"`
 	FeedURLFile string         `yaml:"feed_url_file"`
 	Filters     []FilterConfig `yaml:"filters"`
@@ -36,6 +37,7 @@ type Calendar struct {
 	PublishName string
 	Public      bool
 	Token       string
+	UserAgent   string
 	FeedURL     string
 	Filters     []Filter
 }
@@ -60,6 +62,7 @@ func (config Config) Compile() (RuntimeConfig, error) {
 			PublishName: calendarConfig.PublishName,
 			Public:      calendarConfig.Public,
 			Token:       calendarConfig.Token,
+			UserAgent:   calendarConfig.UserAgent,
 			FeedURL:     calendarConfig.FeedURL,
 			Filters:     filters,
 		})
@@ -73,7 +76,7 @@ func (calendar Calendar) fetch(ctx context.Context) ([]byte, error) {
 
 	// get the iCal feed
 	slog.Debug("fetching upstream calendar", "calendar", calendar.Name, "url", redactURL(calendar.FeedURL))
-	feedData, err := fetchUpstreamCalendar(ctx, calendar.FeedURL)
+	feedData, err := fetchUpstreamCalendar(ctx, calendar.FeedURL, calendar.UserAgent)
 	if err != nil {
 		return nil, err
 	}

@@ -117,6 +117,7 @@ calendars:
     token: "changeme" # optional - token must be used to pull iCal feed if defined
     public: false # optional - must be true if token is blank or not defined
     feed_url: "https://my-upstream-calendar.url/feed.ics" # URL for the upstream iCal feed
+    user_agent: "ical-filter-proxy" # optional - override User-Agent sent to this upstream feed
     filters: # optional - if no filters defined the upstream calendar is proxied as parsed
       - description: "Remove an event based on a regex"
         remove: true # events matching this filter will be removed
