@@ -100,6 +100,58 @@ func TestCalendarFeedHandlerSuccess(t *testing.T) {
 	}
 }
 
+func TestCalendarFeedHandlerHeadSuccess(t *testing.T) {
+	handler := calendarFeedHandlerWithFetch(
+		CalendarConfig{Name: "private", Token: "secret"},
+		func(context.Context) ([]byte, error) {
+			return []byte("BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n"), nil
+		},
+	)
+
+	req := testRequestWithMethod(t, http.MethodHead, "/calendars/private/feed?token=secret")
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusOK)
+	}
+	assertCommonResponseHeaders(t, rr)
+	if got := rr.Header().Get("Content-Type"); got != calendarContentType {
+		t.Fatalf("Content-Type = %q, want %q", got, calendarContentType)
+	}
+	if got := rr.Body.String(); got != "" {
+		t.Fatalf("body = %q, want empty body", got)
+	}
+}
+
+func TestCalendarFeedHandlerMethodNotAllowed(t *testing.T) {
+	fetchCalled := false
+	handler := calendarFeedHandlerWithFetch(
+		CalendarConfig{Name: "private", Token: "secret"},
+		func(context.Context) ([]byte, error) {
+			fetchCalled = true
+			return []byte("should not be called"), nil
+		},
+	)
+
+	req := testRequestWithMethod(t, http.MethodPost, "/calendars/private/feed?token=secret")
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusMethodNotAllowed)
+	}
+	assertCommonResponseHeaders(t, rr)
+	if got := rr.Header().Get("Allow"); got != allowedMethods {
+		t.Fatalf("Allow = %q, want %q", got, allowedMethods)
+	}
+	if fetchCalled {
+		t.Fatal("fetch was called for unsupported method")
+	}
+}
+
 func TestCalendarFeedHandlerPublicCalendarIgnoresToken(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -158,7 +210,13 @@ func TestCalendarFeedHandlerUpstreamError(t *testing.T) {
 func testRequest(t *testing.T, target string) *http.Request {
 	t.Helper()
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, target, nil)
+	return testRequestWithMethod(t, http.MethodGet, target)
+}
+
+func testRequestWithMethod(t *testing.T, method string, target string) *http.Request {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(context.Background(), method, target, nil)
 	if err != nil {
 		t.Fatalf("NewRequestWithContext() returned error: %v", err)
 	}

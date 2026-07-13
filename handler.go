@@ -10,6 +10,7 @@ import (
 const (
 	calendarContentType = "text/calendar; charset=utf-8"
 	cacheControlHeader  = "no-store"
+	allowedMethods      = "GET, HEAD"
 )
 
 type calendarFetchFunc func(context.Context) ([]byte, error)
@@ -21,6 +22,12 @@ func calendarFeedHandler(calendarConfig CalendarConfig) http.HandlerFunc {
 func calendarFeedHandlerWithFetch(calendarConfig CalendarConfig, fetch calendarFetchFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		setCommonResponseHeaders(w)
+
+		if r.Method != http.MethodGet && r.Method != http.MethodHead {
+			w.Header().Set("Allow", allowedMethods)
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
 
 		if !calendarConfig.Public && !tokenMatches(r.URL.Query().Get("token"), calendarConfig.Token) {
 			slog.Warn("Unauthorized access attempt", "client_ip", r.RemoteAddr)
@@ -38,6 +45,10 @@ func calendarFeedHandlerWithFetch(calendarConfig CalendarConfig, fetch calendarF
 
 		// return calendar
 		w.Header().Set("Content-Type", calendarContentType)
+		if r.Method == http.MethodHead {
+			return
+		}
+
 		_, err = w.Write(feed)
 		if err != nil {
 			slog.Error("Error writing response", "error", err)
