@@ -52,8 +52,53 @@ func TestRouteMetricLabel(t *testing.T) {
 	}
 }
 
+func TestCalendarNameFromPath(t *testing.T) {
+	tests := []struct {
+		name     string
+		path     string
+		wantName string
+		wantOK   bool
+	}{
+		{
+			name:     "calendar feed",
+			path:     "/calendars/private/feed",
+			wantName: "private",
+			wantOK:   true,
+		},
+		{
+			name:   "not calendar route",
+			path:   "/liveness",
+			wantOK: false,
+		},
+		{
+			name:   "missing feed suffix",
+			path:   "/calendars/private",
+			wantOK: false,
+		},
+		{
+			name:   "extra path",
+			path:   "/calendars/private/feed/extra",
+			wantOK: false,
+		},
+		{
+			name:   "empty name",
+			path:   "/calendars//feed",
+			wantOK: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotName, gotOK := calendarNameFromPath(tt.path)
+			if gotName != tt.wantName || gotOK != tt.wantOK {
+				t.Fatalf("calendarNameFromPath() = %q, %v; want %q, %v", gotName, gotOK, tt.wantName, tt.wantOK)
+			}
+		})
+	}
+}
+
 func TestMetricsMiddlewareRecordsRequest(t *testing.T) {
-	metrics := newPrometheusMetrics()
+	metrics := newPrometheusMetrics(false)
 	handler := metrics.middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusAccepted)
 	}))
@@ -79,9 +124,36 @@ func TestMetricsMiddlewareRecordsRequest(t *testing.T) {
 	}
 }
 
+func TestMetricsMiddlewareRecordsPerCalendarRequestWhenEnabled(t *testing.T) {
+	metrics := newPrometheusMetrics(true)
+	handler := metrics.middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusAccepted)
+	}))
+
+	req := testRequest(t, "/calendars/private/feed?token=secret")
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusAccepted {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusAccepted)
+	}
+
+	got := scrapeMetrics(t, metrics)
+	if strings.Contains(got, "token=secret") {
+		t.Fatalf("metrics output includes query token: %q", got)
+	}
+	if !strings.Contains(got, `ical_filter_proxy_http_requests_total{handler="calendar",method="GET",status="202"} 1`) {
+		t.Fatalf("metrics output = %q, want aggregate request counter sample", got)
+	}
+	if !strings.Contains(got, `ical_filter_proxy_calendar_requests_total{calendar="private",method="GET",status="202"} 1`) {
+		t.Fatalf("metrics output = %q, want per-calendar request counter sample", got)
+	}
+}
+
 func TestMetricsInstrumentFetchRecordsSuccess(t *testing.T) {
-	metrics := newPrometheusMetrics()
-	fetch := metrics.instrumentFetch(func(context.Context) ([]byte, error) {
+	metrics := newPrometheusMetrics(false)
+	fetch := metrics.instrumentFetch("private", func(context.Context) ([]byte, error) {
 		return []byte("BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n"), nil
 	})
 
@@ -102,9 +174,29 @@ func TestMetricsInstrumentFetchRecordsSuccess(t *testing.T) {
 	}
 }
 
+func TestMetricsInstrumentFetchRecordsPerCalendarFetchWhenEnabled(t *testing.T) {
+	metrics := newPrometheusMetrics(true)
+	fetch := metrics.instrumentFetch("private", func(context.Context) ([]byte, error) {
+		return []byte("BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n"), nil
+	})
+
+	_, err := fetch(context.Background())
+	if err != nil {
+		t.Fatalf("fetch returned error: %v", err)
+	}
+
+	got := scrapeMetrics(t, metrics)
+	if !strings.Contains(got, `ical_filter_proxy_upstream_fetches_total{result="success"} 1`) {
+		t.Fatalf("metrics output = %q, want aggregate upstream fetch counter", got)
+	}
+	if !strings.Contains(got, `ical_filter_proxy_calendar_upstream_fetches_total{calendar="private",result="success"} 1`) {
+		t.Fatalf("metrics output = %q, want per-calendar upstream fetch counter", got)
+	}
+}
+
 func TestMetricsInstrumentFetchRecordsError(t *testing.T) {
-	metrics := newPrometheusMetrics()
-	fetch := metrics.instrumentFetch(func(context.Context) ([]byte, error) {
+	metrics := newPrometheusMetrics(false)
+	fetch := metrics.instrumentFetch("private", func(context.Context) ([]byte, error) {
 		return nil, errors.New("upstream failed")
 	})
 

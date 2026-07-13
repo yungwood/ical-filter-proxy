@@ -166,7 +166,7 @@ calendars:
 The service exposes a simple HTTP API for accessing the proxied calendars.
 The base URL is `http://<host>:<port>/calendars/<calendar_name>/feed`.
 
-Prometheus metrics can be enabled with `-metrics`, which exposes `/metrics`.
+Prometheus metrics can be enabled with `-metrics`, which exposes `/metrics`. Metrics use aggregate labels by default; `-metrics-calendar-labels` additionally exposes per-calendar metrics labelled by calendar name.
 
 ### Filters
 

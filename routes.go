@@ -12,7 +12,7 @@ func registerPublicRoutes(mux *http.ServeMux, config Config, metrics *prometheus
 
 		fetch := calendarConfig.fetch
 		if metrics != nil {
-			fetch = metrics.instrumentFetch(fetch)
+			fetch = metrics.instrumentFetch(calendarConfig.Name, fetch)
 		}
 
 		mux.HandleFunc(httpPath, calendarFeedHandlerWithFetch(calendarConfig, fetch))

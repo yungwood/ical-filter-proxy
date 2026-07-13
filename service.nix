@@ -392,6 +392,12 @@ in {
       description = "Enable the Prometheus metrics endpoint at /metrics.";
     };
 
+    metricsCalendarLabels = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Enable additional Prometheus metrics labelled by calendar name.";
+    };
+
     extraArgs = mkOption {
       type = types.listOf types.str;
       default = [];
@@ -470,6 +476,7 @@ in {
             ++ optional cfg.debug "-debug"
             ++ optional cfg.jsonLogging "-json"
             ++ optional cfg.metrics "-metrics"
+            ++ optional cfg.metricsCalendarLabels "-metrics-calendar-labels"
             ++ cfg.extraArgs;
         in "${lib.escapeShellArgs args}";
       };
