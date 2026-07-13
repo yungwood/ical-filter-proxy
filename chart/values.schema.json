@@ -8,6 +8,18 @@
     "args": {
       "type": "array"
     },
+    "app": {
+      "additionalProperties": false,
+      "properties": {
+        "port": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "port"
+      ],
+      "type": "object"
+    },
     "config": {
       "properties": {
         "additionalProperties": false,
@@ -462,6 +474,7 @@
     }
   },
   "required": [
+    "app",
     "image",
     "config",
     "extraResources",

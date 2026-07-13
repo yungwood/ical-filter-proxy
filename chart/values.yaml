@@ -9,6 +9,9 @@ fullnameOverride: ""
 
 replicaCount: 1
 
+app:
+  port: 8080
+
 args: []
 
 config:
