@@ -147,7 +147,7 @@ func TestConfigRuntimeConfig(t *testing.T) {
 				TokenFile:   "/run/secrets/token",
 				FeedURL:     "https://example.com/feed.ics",
 				FeedURLFile: "/run/secrets/feed-url",
-				Filters: []Filter{
+				Filters: []FilterConfig{
 					{
 						Description: "rename event",
 						Transform: EventTransformRules{
@@ -196,7 +196,7 @@ func TestConfigRuntimeConfigRejectsInvalidRegex(t *testing.T) {
 				Name:    "public",
 				Public:  true,
 				FeedURL: "https://example.com/feed.ics",
-				Filters: []Filter{
+				Filters: []FilterConfig{
 					{
 						Description: "invalid regex",
 						Match: EventMatchRules{

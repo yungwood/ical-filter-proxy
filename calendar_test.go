@@ -21,7 +21,7 @@ func TestCalendarFetch(t *testing.T) {
 		Name:        "test",
 		PublishName: "Filtered Calendar",
 		FeedURL:     server.URL,
-		Filters: mustCompileFilters(t, []Filter{
+		Filters: mustCompileFilters(t, []FilterConfig{
 			{
 				Description: "Remove canceled events",
 				RemoveEvent: true,
@@ -91,7 +91,7 @@ func TestCalendarProcessEvent(t *testing.T) {
 		{
 			name: "keeps event by default when no filters match",
 			config: Calendar{
-				Filters: mustCompileFilters(t, []Filter{
+				Filters: mustCompileFilters(t, []FilterConfig{
 					{
 						Description: "Remove canceled events",
 						RemoveEvent: true,
@@ -108,7 +108,7 @@ func TestCalendarProcessEvent(t *testing.T) {
 		{
 			name: "removes event when remove filter matches",
 			config: Calendar{
-				Filters: mustCompileFilters(t, []Filter{
+				Filters: mustCompileFilters(t, []FilterConfig{
 					{
 						Description: "Remove canceled events",
 						RemoveEvent: true,
@@ -125,7 +125,7 @@ func TestCalendarProcessEvent(t *testing.T) {
 		{
 			name: "transforms matching event and keeps it",
 			config: Calendar{
-				Filters: mustCompileFilters(t, []Filter{
+				Filters: mustCompileFilters(t, []FilterConfig{
 					{
 						Description: "Rename on-call events",
 						Match: EventMatchRules{
@@ -144,7 +144,7 @@ func TestCalendarProcessEvent(t *testing.T) {
 		{
 			name: "stop prevents later matching filters",
 			config: Calendar{
-				Filters: mustCompileFilters(t, []Filter{
+				Filters: mustCompileFilters(t, []FilterConfig{
 					{
 						Description: "Rename and stop",
 						Stop:        true,
@@ -165,7 +165,7 @@ func TestCalendarProcessEvent(t *testing.T) {
 		{
 			name: "transform continues to later filters when stop is false",
 			config: Calendar{
-				Filters: mustCompileFilters(t, []Filter{
+				Filters: mustCompileFilters(t, []FilterConfig{
 					{
 						Description: "Rename without stop",
 						Transform: EventTransformRules{
@@ -188,7 +188,7 @@ func TestCalendarProcessEvent(t *testing.T) {
 		{
 			name: "filter without match rules matches all events",
 			config: Calendar{
-				Filters: mustCompileFilters(t, []Filter{
+				Filters: mustCompileFilters(t, []FilterConfig{
 					{
 						Description: "Remove everything",
 						RemoveEvent: true,
@@ -202,7 +202,7 @@ func TestCalendarProcessEvent(t *testing.T) {
 		{
 			name: "drops event without summary",
 			config: Calendar{
-				Filters: mustCompileFilters(t, []Filter{}),
+				Filters: mustCompileFilters(t, []FilterConfig{}),
 			},
 			event:       ics.NewEvent("missing-summary"),
 			wantKeep:    false,
