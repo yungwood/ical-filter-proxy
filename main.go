@@ -83,7 +83,7 @@ func main() {
 		// configure HTTP endpoint
 		httpPath := "/calendars/" + calendarConfig.Name + "/feed"
 		slog.Debug("Configuring endpoint", "calendar", calendarConfig.Name, "http_path", httpPath)
-		mux.HandleFunc(httpPath, calendarFeedHandler(httpPath, calendarConfig))
+		mux.HandleFunc(httpPath, calendarFeedHandler(calendarConfig))
 
 	}
 
@@ -93,7 +93,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:              ":" + strconv.Itoa(listenPort),
-		Handler:           mux,
+		Handler:           requestLoggingMiddleware(mux),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      30 * time.Second,
