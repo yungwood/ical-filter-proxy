@@ -30,7 +30,7 @@
           "-s"
           "-w"
           "-X main.version=${packageVersion}"
-          "-X main.revision=${packageRevision}"
+          "-X main.commit=${packageRevision}"
         ];
 
         meta = with pkgs.lib; {
