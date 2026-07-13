@@ -7,7 +7,7 @@ metadata:
     {{- include "ical-filter-proxy.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
-  revisionHistoryLimit: {{ .Values.revisionHistoryLimit | default "3" }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
   selector:
     matchLabels:
       {{- include "ical-filter-proxy.selectorLabels" . | nindent 6 }}
