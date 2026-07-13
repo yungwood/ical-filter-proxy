@@ -64,6 +64,24 @@ jobs:
       - name: Run tests
         run: go test ./...
 
+  coverage:
+    name: coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - name: Generate coverage
+        run: go test ./... -covermode=atomic -coverprofile=coverage.out
+      - name: Print coverage
+        run: go tool cover -func=coverage.out
+      - name: Upload coverage profile
+        uses: actions/upload-artifact@v6
+        with:
+          name: go-coverage
+          path: coverage.out
+
   golangci:
     name: golangci-lint
     runs-on: ubuntu-latest
