@@ -14,10 +14,12 @@
     # NixOS module that works across all systems
     nixosModule = args: import ./service.nix (args // {inherit self;});
 
+    packageVersion = self.shortRev or "dev";
+
     mkIcalFilterProxy = pkgs:
       pkgs.buildGoModule {
         pname = "ical-filter-proxy";
-        version = "0.1.0";
+        version = packageVersion;
 
         src = ./.;
 
@@ -26,7 +28,7 @@
         ldflags = [
           "-s"
           "-w"
-          "-X main.version=${self.rev or "dev"}"
+          "-X main.version=${packageVersion}"
         ];
 
         meta = with pkgs.lib; {
