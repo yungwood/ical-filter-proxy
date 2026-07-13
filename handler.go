@@ -14,15 +14,13 @@ const (
 
 type calendarFetchFunc func(context.Context) ([]byte, error)
 
-func calendarFeedHandler(httpPath string, calendarConfig CalendarConfig) http.HandlerFunc {
-	return calendarFeedHandlerWithFetch(httpPath, calendarConfig, calendarConfig.fetch)
+func calendarFeedHandler(calendarConfig CalendarConfig) http.HandlerFunc {
+	return calendarFeedHandlerWithFetch(calendarConfig, calendarConfig.fetch)
 }
 
-func calendarFeedHandlerWithFetch(httpPath string, calendarConfig CalendarConfig, fetch calendarFetchFunc) http.HandlerFunc {
+func calendarFeedHandlerWithFetch(calendarConfig CalendarConfig, fetch calendarFetchFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		setCommonResponseHeaders(w)
-
-		slog.Debug("Received request for calendar", "http_path", httpPath, "calendar", calendarConfig.Name, "client_ip", r.RemoteAddr)
 
 		if !calendarConfig.Public && !tokenMatches(r.URL.Query().Get("token"), calendarConfig.Token) {
 			slog.Warn("Unauthorized access attempt", "client_ip", r.RemoteAddr)
@@ -46,8 +44,6 @@ func calendarFeedHandlerWithFetch(httpPath string, calendarConfig CalendarConfig
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
-
-		slog.Info("Calendar request processed", "http_path", httpPath, "calendar", calendarConfig.Name, "client_ip", r.RemoteAddr)
 	}
 }
 
