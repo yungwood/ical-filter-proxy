@@ -1,16 +1,22 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 )
 
 var version = "development"
+
+const gracefulShutdownTimeout = 10 * time.Second
 
 func main() {
 
@@ -96,8 +102,36 @@ func main() {
 
 	// start the webserver
 	slog.Info("Starting web server", "port", listenPort)
-	if err := server.ListenAndServe(); err != nil {
-		slog.Error("Error starting web server", "error", err)
+	serverErr := make(chan error, 1)
+	go func() {
+		serverErr <- server.ListenAndServe()
+	}()
+
+	shutdownSignal := make(chan os.Signal, 1)
+	signal.Notify(shutdownSignal, syscall.SIGINT, syscall.SIGTERM)
+	defer signal.Stop(shutdownSignal)
+
+	select {
+	case err := <-serverErr:
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("Error running web server", "error", err)
+		}
+	case sig := <-shutdownSignal:
+		slog.Info("Stopping web server", "signal", sig.String())
+
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
+		defer cancel()
+
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			slog.Error("Error stopping web server", "error", err)
+			if closeErr := server.Close(); closeErr != nil && !errors.Is(closeErr, http.ErrServerClosed) {
+				slog.Error("Error closing web server", "error", closeErr)
+			}
+		}
+
+		if err := <-serverErr; err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("Error running web server", "error", err)
+		}
 	}
 
 }
