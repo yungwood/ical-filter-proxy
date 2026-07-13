@@ -1,0 +1,170 @@
+/**
+ * CSS files with the .module.css suffix will be treated as CSS modules
+ * and scoped locally.
+ */
+
+.heroBanner {
+  padding: 3.5rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.heroLogo {
+  height: 160px;
+  width: 160px;
+  margin-bottom: 1rem;
+}
+
+.heroBanner :global(.hero__title) {
+  font-size: 3rem;
+}
+
+.heroBanner :global(.hero__subtitle) {
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 2rem;
+  }
+
+  .heroLogo {
+    height: 120px;
+    width: 120px;
+  }
+
+  .heroBanner :global(.hero__title) {
+    font-size: 2.4rem;
+  }
+
+  .heroBanner :global(.hero__subtitle) {
+    font-size: 1.15rem;
+  }
+
+  .textColumn {
+    order: 1;
+  }
+
+  .codeColumn {
+    order: 2;
+    margin-top: 2rem;
+  }
+
+  .heroBanner :global(.container),
+  .featureSection :global(.container) {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .heroBanner :global(.hero__title) {
+    font-size: 2rem;
+  }
+
+  .heroBanner :global(.hero__subtitle) {
+    font-size: 1rem;
+  }
+}
+
+@media screen and (min-width: 997px) and (max-width: 1200px) {
+  .heroBanner :global(.container),
+  .featureSection :global(.container) {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+.buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+.featureSection {
+  padding: 3.5rem 0;
+}
+
+@media screen and (min-width: 997px) {
+  .textContent {
+    padding-right: 1.5rem;
+  }
+
+  .codeContent {
+    padding-left: 1.5rem;
+  }
+
+  .reverseSection .textContent {
+    padding-right: 0;
+    padding-left: 1.5rem;
+  }
+
+  .reverseSection .codeContent {
+    padding-right: 1.5rem;
+    padding-left: 0;
+  }
+}
+
+.shadedSection {
+  background: var(--ifm-color-emphasis-200);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+[data-theme='dark'] .shadedSection {
+  background: var(--ifm-background-surface-color);
+  border-bottom-color: var(--ifm-color-emphasis-200);
+  border-top-color: var(--ifm-color-emphasis-200);
+}
+
+.sectionLinks {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin-top: 1.25rem;
+}
+
+.sectionLink {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  font-weight: 600;
+}
+
+.sectionLink:hover {
+  text-decoration: none;
+}
+
+.sectionLink:hover span:first-child {
+  text-decoration: underline;
+}
+
+.codeBlock {
+  margin: 0;
+  border-radius: 8px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  background: var(--ifm-background-color) !important;
+  --prism-background-color: var(--ifm-background-color);
+  font-size: 0.9rem;
+}
+
+.codeBlock :global(.theme-code-block-title) {
+  background: var(--ifm-background-color);
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+}
+
+[data-theme='dark'] .codeBlock {
+  background: var(--ifm-color-emphasis-100) !important;
+  --prism-background-color: var(--ifm-color-emphasis-100);
+}
+
+[data-theme='dark'] .codeBlock :global(.theme-code-block-title) {
+  background: var(--ifm-color-emphasis-100);
+  border-bottom-color: var(--ifm-color-emphasis-300);
+}
