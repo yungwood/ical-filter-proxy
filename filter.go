@@ -6,7 +6,8 @@ import (
 	ics "github.com/arran4/golang-ical"
 )
 
-// Filter definition
+// Filter is the YAML-backed filter configuration. It is compiled into
+// CompiledFilter before runtime event processing.
 type Filter struct {
 	Description string              `yaml:"description"`
 	RemoveEvent bool                `yaml:"remove"`
@@ -15,6 +16,9 @@ type Filter struct {
 	Transform   EventTransformRules `yaml:"transform"`
 }
 
+// CompiledFilter is the runtime filter representation. Match rules are compiled
+// once during config preparation; transforms remain raw because they are already
+// directly executable.
 type CompiledFilter struct {
 	Description string
 	RemoveEvent bool
@@ -81,7 +85,7 @@ func (filter CompiledFilter) transformEvent(event *ics.VEvent) {
 	}
 }
 
-// EventMatchRules contains VEvent properties that user can match against
+// EventMatchRules contains YAML-backed match rules for VEvent properties.
 type EventMatchRules struct {
 	Summary     StringMatchRule `yaml:"summary"`
 	Description StringMatchRule `yaml:"description"`
@@ -89,6 +93,8 @@ type EventMatchRules struct {
 	URL         StringMatchRule `yaml:"url"`
 }
 
+// CompiledEventMatchRules contains runtime-ready match rules for VEvent
+// properties.
 type CompiledEventMatchRules struct {
 	Summary     CompiledStringMatchRule
 	Description CompiledStringMatchRule
