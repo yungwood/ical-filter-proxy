@@ -135,6 +135,112 @@ calendars:
 	}
 }
 
+func TestLoadConfigResolvesEnvironmentReferences(t *testing.T) {
+	configFile := writeTempFile(t, "config-*.yaml", `
+calendars:
+  - name: private
+    token: ${CALENDAR_TOKEN}
+    feed_url: ${CALENDAR_FEED_URL}
+`)
+
+	config, err := loadConfig(configFile, mapEnv(map[string]string{
+		"CALENDAR_TOKEN":    "env-token",
+		"CALENDAR_FEED_URL": "https://example.com/from-env.ics",
+	}))
+	if err != nil {
+		t.Fatalf("LoadConfig() returned error: %v", err)
+	}
+
+	if got := config.Calendars[0].Token; got != "env-token" {
+		t.Fatalf("Token = %q, want env-token", got)
+	}
+	if got := config.Calendars[0].FeedURL; got != "https://example.com/from-env.ics" {
+		t.Fatalf("FeedURL = %q, want https://example.com/from-env.ics", got)
+	}
+}
+
+func TestLoadConfigRejectsMissingEnvironmentReference(t *testing.T) {
+	configFile := writeTempFile(t, "config-*.yaml", `
+calendars:
+  - name: private
+    token: ${MISSING_TOKEN}
+    feed_url: https://example.com/feed.ics
+`)
+
+	_, err := loadConfig(configFile, emptyEnv)
+	if err == nil {
+		t.Fatal("LoadConfig() returned nil error")
+	}
+	if !strings.Contains(err.Error(), "MISSING_TOKEN") {
+		t.Fatalf("LoadConfig() error = %q, want missing env name", err)
+	}
+}
+
+func TestLoadConfigRejectsEmptyEnvironmentReference(t *testing.T) {
+	configFile := writeTempFile(t, "config-*.yaml", `
+calendars:
+  - name: private
+    token: ${EMPTY_TOKEN}
+    feed_url: https://example.com/feed.ics
+`)
+
+	_, err := loadConfig(configFile, mapEnv(map[string]string{
+		"EMPTY_TOKEN": "",
+	}))
+	if err == nil {
+		t.Fatal("LoadConfig() returned nil error")
+	}
+	if !strings.Contains(err.Error(), "EMPTY_TOKEN") {
+		t.Fatalf("LoadConfig() error = %q, want empty env name", err)
+	}
+}
+
+func TestLoadConfigDoesNotExpandPartialEnvironmentReferences(t *testing.T) {
+	configFile := writeTempFile(t, "config-*.yaml", `
+calendars:
+  - name: private
+    token: ${TOKEN}
+    feed_url: https://example.com/${CALENDAR_TOKEN}/feed.ics
+`)
+
+	config, err := loadConfig(configFile, mapEnv(map[string]string{
+		"TOKEN":          "env-token",
+		"CALENDAR_TOKEN": "secret-path",
+	}))
+	if err != nil {
+		t.Fatalf("LoadConfig() returned error: %v", err)
+	}
+
+	if got := config.Calendars[0].FeedURL; got != "https://example.com/${CALENDAR_TOKEN}/feed.ics" {
+		t.Fatalf("FeedURL = %q, want literal partial env reference", got)
+	}
+}
+
+func TestLoadConfigSecretFilesTakePrecedenceOverEnvironmentReferences(t *testing.T) {
+	tokenFile := writeTempFile(t, "token-*", "file-token\n")
+	feedURLFile := writeTempFile(t, "feed-url-*", "https://example.com/from-file.ics\n")
+	configFile := writeTempFile(t, "config-*.yaml", `
+calendars:
+  - name: private
+    token: ${CALENDAR_TOKEN}
+    token_file: `+tokenFile+`
+    feed_url: ${CALENDAR_FEED_URL}
+    feed_url_file: `+feedURLFile+`
+`)
+
+	config, err := loadConfig(configFile, emptyEnv)
+	if err != nil {
+		t.Fatalf("LoadConfig() returned error: %v", err)
+	}
+
+	if got := config.Calendars[0].Token; got != "file-token" {
+		t.Fatalf("Token = %q, want file-token", got)
+	}
+	if got := config.Calendars[0].FeedURL; got != "https://example.com/from-file.ics" {
+		t.Fatalf("FeedURL = %q, want https://example.com/from-file.ics", got)
+	}
+}
+
 func TestConfigCompile(t *testing.T) {
 	config := Config{
 		Calendars: []CalendarConfig{

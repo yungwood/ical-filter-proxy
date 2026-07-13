@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -18,6 +19,10 @@ type Config struct {
 // calendar-level settings. Rule compilation and regex validation happen when
 // building RuntimeConfig.
 func LoadConfig(file string) (Config, error) {
+	return loadConfig(file, os.LookupEnv)
+}
+
+func loadConfig(file string, lookupEnv envLookupFunc) (Config, error) {
 	data, err := os.ReadFile(file)
 	if err != nil {
 		return Config{}, fmt.Errorf("open config file %q: %w; use -config to specify a different file", file, err)
@@ -50,6 +55,11 @@ func LoadConfig(file string) (Config, error) {
 			if err != nil {
 				return Config{}, fmt.Errorf("calendar %q: read feed_url_file %q: %w", calendarConfig.Name, calendarConfig.FeedURLFile, err)
 			}
+		} else {
+			calendarConfig.FeedURL, err = resolveConfigEnvReference(calendarConfig.FeedURL, lookupEnv)
+			if err != nil {
+				return Config{}, fmt.Errorf("calendar %q: feed_url: %w", calendarConfig.Name, err)
+			}
 		}
 
 		// check if url seems valid
@@ -63,6 +73,11 @@ func LoadConfig(file string) (Config, error) {
 			if err != nil {
 				return Config{}, fmt.Errorf("calendar %q: read token_file %q: %w", calendarConfig.Name, calendarConfig.TokenFile, err)
 			}
+		} else {
+			calendarConfig.Token, err = resolveConfigEnvReference(calendarConfig.Token, lookupEnv)
+			if err != nil {
+				return Config{}, fmt.Errorf("calendar %q: token: %w", calendarConfig.Name, err)
+			}
 		}
 
 		if !calendarConfig.Public && calendarConfig.Token == "" {
@@ -72,6 +87,23 @@ func LoadConfig(file string) (Config, error) {
 	}
 
 	return config, nil
+}
+
+var exactEnvReferencePattern = regexp.MustCompile(`^\$\{([A-Za-z_][A-Za-z0-9_]*)\}$`)
+
+func resolveConfigEnvReference(value string, lookupEnv envLookupFunc) (string, error) {
+	matches := exactEnvReferencePattern.FindStringSubmatch(value)
+	if matches == nil {
+		return value, nil
+	}
+
+	envName := matches[1]
+	envValue, ok := lookupEnv(envName)
+	if !ok || envValue == "" {
+		return "", fmt.Errorf("environment variable %s is not set or is empty", envName)
+	}
+
+	return envValue, nil
 }
 
 func readSecretFile(filePath string) (string, error) {
