@@ -58,6 +58,7 @@ func (config *Config) LoadConfig(file string) bool {
 			calendarConfig.Token, err = readSecretFile(calendarConfig.TokenFile)
 			if err != nil {
 				slog.Error("Unable to read token_file", "calendar", calendarConfig.Name, "token_file", calendarConfig.TokenFile)
+				return false
 			}
 		}
 
