@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -75,4 +77,56 @@ func TestMetricsMiddlewareRecordsRequest(t *testing.T) {
 	if !strings.Contains(got, `ical_filter_proxy_http_requests_total{handler="calendar",method="GET",status="202"} 1`) {
 		t.Fatalf("metrics output = %q, want request counter sample", got)
 	}
+}
+
+func TestMetricsInstrumentFetchRecordsSuccess(t *testing.T) {
+	metrics := newPrometheusMetrics()
+	fetch := metrics.instrumentFetch(func(context.Context) ([]byte, error) {
+		return []byte("BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n"), nil
+	})
+
+	feed, err := fetch(context.Background())
+	if err != nil {
+		t.Fatalf("fetch returned error: %v", err)
+	}
+	if string(feed) != "BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n" {
+		t.Fatalf("feed = %q, want calendar", feed)
+	}
+
+	got := scrapeMetrics(t, metrics)
+	if !strings.Contains(got, `ical_filter_proxy_upstream_fetches_total{result="success"} 1`) {
+		t.Fatalf("metrics output = %q, want successful upstream fetch counter", got)
+	}
+	if strings.Contains(got, `ical_filter_proxy_upstream_fetches_total{result="error"}`) {
+		t.Fatalf("metrics output = %q, did not want error upstream fetch counter", got)
+	}
+}
+
+func TestMetricsInstrumentFetchRecordsError(t *testing.T) {
+	metrics := newPrometheusMetrics()
+	fetch := metrics.instrumentFetch(func(context.Context) ([]byte, error) {
+		return nil, errors.New("upstream failed")
+	})
+
+	_, err := fetch(context.Background())
+	if err == nil {
+		t.Fatal("fetch returned nil error")
+	}
+
+	got := scrapeMetrics(t, metrics)
+	if !strings.Contains(got, `ical_filter_proxy_upstream_fetches_total{result="error"} 1`) {
+		t.Fatalf("metrics output = %q, want failed upstream fetch counter", got)
+	}
+	if strings.Contains(got, `ical_filter_proxy_upstream_fetches_total{result="success"}`) {
+		t.Fatalf("metrics output = %q, did not want successful upstream fetch counter", got)
+	}
+}
+
+func scrapeMetrics(t *testing.T, metrics *prometheusMetrics) string {
+	t.Helper()
+
+	metricsRecorder := httptest.NewRecorder()
+	metrics.handler().ServeHTTP(metricsRecorder, testRequest(t, "/metrics"))
+
+	return metricsRecorder.Body.String()
 }

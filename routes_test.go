@@ -15,7 +15,7 @@ func TestRegisterPublicRoutesRegistersCalendarFeeds(t *testing.T) {
 				Token: "secret",
 			},
 		},
-	})
+	}, nil)
 
 	req := testRequest(t, "/calendars/private/feed")
 	rr := httptest.NewRecorder()
@@ -68,7 +68,7 @@ func TestPublicAndInternalRoutesCanUseSeparateMuxes(t *testing.T) {
 				Token: "secret",
 			},
 		},
-	})
+	}, nil)
 
 	internalMux := http.NewServeMux()
 	registerInternalRoutes(internalMux, nil)
