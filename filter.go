@@ -87,19 +87,19 @@ func (filter Filter) transformEvent(event *ics.VEvent) {
 
 // EventMatchRules contains YAML-backed match rules for VEvent properties.
 type EventMatchRules struct {
-	Summary     StringMatchRule `yaml:"summary"`
-	Description StringMatchRule `yaml:"description"`
-	Location    StringMatchRule `yaml:"location"`
-	URL         StringMatchRule `yaml:"url"`
+	Summary     StringMatchRuleConfig `yaml:"summary"`
+	Description StringMatchRuleConfig `yaml:"description"`
+	Location    StringMatchRuleConfig `yaml:"location"`
+	URL         StringMatchRuleConfig `yaml:"url"`
 }
 
 // CompiledEventMatchRules contains runtime-ready match rules for VEvent
 // properties.
 type CompiledEventMatchRules struct {
-	Summary     CompiledStringMatchRule
-	Description CompiledStringMatchRule
-	Location    CompiledStringMatchRule
-	URL         CompiledStringMatchRule
+	Summary     StringMatchRule
+	Description StringMatchRule
+	Location    StringMatchRule
+	URL         StringMatchRule
 }
 
 func (rules EventMatchRules) compile() (CompiledEventMatchRules, error) {
@@ -139,7 +139,7 @@ type EventTransformRules struct {
 type eventStringMatch struct {
 	property ics.ComponentProperty
 	name     string
-	rule     CompiledStringMatchRule
+	rule     StringMatchRule
 }
 
 type eventStringTransform struct {
@@ -148,7 +148,7 @@ type eventStringTransform struct {
 	set      func(string)
 }
 
-func eventStringPropertyMatches(event ics.VEvent, property ics.ComponentProperty, rule CompiledStringMatchRule) bool {
+func eventStringPropertyMatches(event ics.VEvent, property ics.ComponentProperty, rule StringMatchRule) bool {
 	if !rule.hasConditions() {
 		return true
 	}

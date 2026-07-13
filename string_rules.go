@@ -6,9 +6,9 @@ import (
 	"strings"
 )
 
-// StringMatchRule is the YAML-backed string match configuration. Regex values
-// are compiled into CompiledStringMatchRule during runtime config preparation.
-type StringMatchRule struct {
+// StringMatchRuleConfig is the YAML-backed string match configuration. Regex values
+// are compiled into StringMatchRule during runtime config preparation.
+type StringMatchRuleConfig struct {
 	Null       bool   `yaml:"empty"`
 	Contains   string `yaml:"contains"`
 	Prefix     string `yaml:"prefix"`
@@ -16,8 +16,8 @@ type StringMatchRule struct {
 	RegexMatch string `yaml:"regex"`
 }
 
-// Returns true if StringMatchRule has any conditions
-func (smr StringMatchRule) hasConditions() bool {
+// Returns true if StringMatchRuleConfig has any conditions
+func (smr StringMatchRuleConfig) hasConditions() bool {
 	return smr.Null ||
 		smr.Contains != "" ||
 		smr.Prefix != "" ||
@@ -25,13 +25,13 @@ func (smr StringMatchRule) hasConditions() bool {
 		smr.RegexMatch != ""
 }
 
-func (smr StringMatchRule) validate() error {
+func (smr StringMatchRuleConfig) validate() error {
 	_, err := smr.compile()
 	return err
 }
 
-func (smr StringMatchRule) compile() (CompiledStringMatchRule, error) {
-	rule := CompiledStringMatchRule{
+func (smr StringMatchRuleConfig) compile() (StringMatchRule, error) {
+	rule := StringMatchRule{
 		Null:     smr.Null,
 		Contains: smr.Contains,
 		Prefix:   smr.Prefix,
@@ -51,8 +51,8 @@ func (smr StringMatchRule) compile() (CompiledStringMatchRule, error) {
 	return rule, nil
 }
 
-// Returns true if a given string (data) matches ALL StringMatchRule conditions
-func (smr StringMatchRule) matchesString(data string) bool {
+// Returns true if a given string (data) matches ALL StringMatchRuleConfig conditions
+func (smr StringMatchRuleConfig) matchesString(data string) bool {
 	rule, err := smr.compile()
 	if err != nil {
 		return false
@@ -61,9 +61,9 @@ func (smr StringMatchRule) matchesString(data string) bool {
 	return rule.matchesString(data)
 }
 
-// CompiledStringMatchRule is the runtime string matcher. Regex is compiled once
+// StringMatchRule is the runtime string matcher. Regex is compiled once
 // so event processing can match without reparsing configuration.
-type CompiledStringMatchRule struct {
+type StringMatchRule struct {
 	Null     bool
 	Contains string
 	Prefix   string
@@ -71,7 +71,7 @@ type CompiledStringMatchRule struct {
 	Regex    *regexp.Regexp
 }
 
-func (rule CompiledStringMatchRule) hasConditions() bool {
+func (rule StringMatchRule) hasConditions() bool {
 	return rule.Null ||
 		rule.Contains != "" ||
 		rule.Prefix != "" ||
@@ -79,7 +79,7 @@ func (rule CompiledStringMatchRule) hasConditions() bool {
 		rule.Regex != nil
 }
 
-func (rule CompiledStringMatchRule) matchesString(data string) bool {
+func (rule StringMatchRule) matchesString(data string) bool {
 	// check null if set and don't process further - this condition can only be met on its own
 	if rule.Null {
 		return data == ""

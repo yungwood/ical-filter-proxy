@@ -23,7 +23,7 @@ func TestFilterMatchesEvent(t *testing.T) {
 			name:  "summary matches",
 			event: testEvent("Canceled: team calendar event"),
 			match: EventMatchRules{
-				Summary: StringMatchRule{Prefix: "Canceled: "},
+				Summary: StringMatchRuleConfig{Prefix: "Canceled: "},
 			},
 			want: true,
 		},
@@ -31,7 +31,7 @@ func TestFilterMatchesEvent(t *testing.T) {
 			name:  "summary mismatch rejects event",
 			event: testEvent("team calendar event"),
 			match: EventMatchRules{
-				Summary: StringMatchRule{Prefix: "Canceled: "},
+				Summary: StringMatchRuleConfig{Prefix: "Canceled: "},
 			},
 			want: false,
 		},
@@ -41,7 +41,7 @@ func TestFilterMatchesEvent(t *testing.T) {
 				event.SetDescription("weekday shift")
 			}),
 			match: EventMatchRules{
-				Description: StringMatchRule{Contains: "shift"},
+				Description: StringMatchRuleConfig{Contains: "shift"},
 			},
 			want: true,
 		},
@@ -49,7 +49,7 @@ func TestFilterMatchesEvent(t *testing.T) {
 			name:  "missing description matches empty",
 			event: testEvent("team calendar event"),
 			match: EventMatchRules{
-				Description: StringMatchRule{Null: true},
+				Description: StringMatchRuleConfig{Null: true},
 			},
 			want: true,
 		},
@@ -59,7 +59,7 @@ func TestFilterMatchesEvent(t *testing.T) {
 				event.SetLocation("Adelaide")
 			}),
 			match: EventMatchRules{
-				Location: StringMatchRule{Suffix: "laide"},
+				Location: StringMatchRuleConfig{Suffix: "laide"},
 			},
 			want: true,
 		},
@@ -67,7 +67,7 @@ func TestFilterMatchesEvent(t *testing.T) {
 			name:  "missing location matches empty",
 			event: testEvent("team calendar event"),
 			match: EventMatchRules{
-				Location: StringMatchRule{Null: true},
+				Location: StringMatchRuleConfig{Null: true},
 			},
 			want: true,
 		},
@@ -77,7 +77,7 @@ func TestFilterMatchesEvent(t *testing.T) {
 				event.SetURL("https://example.com/event")
 			}),
 			match: EventMatchRules{
-				URL: StringMatchRule{Contains: "example.com"},
+				URL: StringMatchRuleConfig{Contains: "example.com"},
 			},
 			want: true,
 		},
@@ -85,7 +85,7 @@ func TestFilterMatchesEvent(t *testing.T) {
 			name:  "missing url matches empty",
 			event: testEvent("team calendar event"),
 			match: EventMatchRules{
-				URL: StringMatchRule{Null: true},
+				URL: StringMatchRuleConfig{Null: true},
 			},
 			want: true,
 		},
@@ -97,10 +97,10 @@ func TestFilterMatchesEvent(t *testing.T) {
 				event.SetURL("https://example.com/event")
 			}),
 			match: EventMatchRules{
-				Summary:     StringMatchRule{Contains: "calendar"},
-				Description: StringMatchRule{Contains: "shift"},
-				Location:    StringMatchRule{Prefix: "Adel"},
-				URL:         StringMatchRule{Suffix: "/event"},
+				Summary:     StringMatchRuleConfig{Contains: "calendar"},
+				Description: StringMatchRuleConfig{Contains: "shift"},
+				Location:    StringMatchRuleConfig{Prefix: "Adel"},
+				URL:         StringMatchRuleConfig{Suffix: "/event"},
 			},
 			want: true,
 		},
@@ -112,10 +112,10 @@ func TestFilterMatchesEvent(t *testing.T) {
 				event.SetURL("https://example.com/event")
 			}),
 			match: EventMatchRules{
-				Summary:     StringMatchRule{Contains: "calendar"},
-				Description: StringMatchRule{Contains: "holiday"},
-				Location:    StringMatchRule{Prefix: "Adel"},
-				URL:         StringMatchRule{Suffix: "/event"},
+				Summary:     StringMatchRuleConfig{Contains: "calendar"},
+				Description: StringMatchRuleConfig{Contains: "holiday"},
+				Location:    StringMatchRuleConfig{Prefix: "Adel"},
+				URL:         StringMatchRuleConfig{Suffix: "/event"},
 			},
 			want: false,
 		},
@@ -154,35 +154,35 @@ func TestEventStringPropertyMatches(t *testing.T) {
 		name     string
 		event    *ics.VEvent
 		property ics.ComponentProperty
-		rule     CompiledStringMatchRule
+		rule     StringMatchRule
 		want     bool
 	}{
 		{
 			name:     "empty rule matches",
 			event:    testEvent("team calendar event"),
 			property: ics.ComponentPropertySummary,
-			rule:     mustCompileStringMatchRule(t, StringMatchRule{}),
+			rule:     mustCompileStringMatchRule(t, StringMatchRuleConfig{}),
 			want:     true,
 		},
 		{
 			name:     "property value matches",
 			event:    testEvent("team calendar event"),
 			property: ics.ComponentPropertySummary,
-			rule:     mustCompileStringMatchRule(t, StringMatchRule{Contains: "calendar"}),
+			rule:     mustCompileStringMatchRule(t, StringMatchRuleConfig{Contains: "calendar"}),
 			want:     true,
 		},
 		{
 			name:     "property value mismatch",
 			event:    testEvent("team calendar event"),
 			property: ics.ComponentPropertySummary,
-			rule:     mustCompileStringMatchRule(t, StringMatchRule{Contains: "holiday"}),
+			rule:     mustCompileStringMatchRule(t, StringMatchRuleConfig{Contains: "holiday"}),
 			want:     false,
 		},
 		{
 			name:     "missing property matches empty rule",
 			event:    testEvent("team calendar event"),
 			property: ics.ComponentPropertyDescription,
-			rule:     mustCompileStringMatchRule(t, StringMatchRule{Null: true}),
+			rule:     mustCompileStringMatchRule(t, StringMatchRuleConfig{Null: true}),
 			want:     true,
 		},
 	}
@@ -360,7 +360,7 @@ func mustCompileFilters(t *testing.T, filters []FilterConfig) []Filter {
 	return compiledFilters
 }
 
-func mustCompileStringMatchRule(t *testing.T, rule StringMatchRule) CompiledStringMatchRule {
+func mustCompileStringMatchRule(t *testing.T, rule StringMatchRuleConfig) StringMatchRule {
 	t.Helper()
 
 	compiledRule, err := rule.compile()
