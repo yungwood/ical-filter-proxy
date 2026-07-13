@@ -8,10 +8,12 @@ nameOverride: ""
 fullnameOverride: ""
 
 replicaCount: 1
+revisionHistoryLimit: 3
 
 app:
   port: 8080
 
+command: []
 args: []
 
 config:
@@ -37,11 +39,23 @@ config:
   #         match:
   #           summary:
   #             prefix: "[Optional]"
+  #       - description: "Remove events without descriptions"
+  #         remove: true
+  #         match:
+  #           description:
+  #             empty: true
   #       - description: "Remove public holidays"
   #         remove: true
   #         match:
   #           summary:
   #             regex: ".*[Pp]ublic [Hh]oliday.*"
+  #       - description: "Rewrite matching event URLs"
+  #         match:
+  #           url:
+  #             contains: "teams.microsoft.com"
+  #         transform:
+  #           url:
+  #             replace: "https://example.com/meeting"
   #   - name: secrets
   #     feed_url_file: /run/secrets/url
   #     token_file: /run/secrets/token

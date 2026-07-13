@@ -20,9 +20,12 @@
       ],
       "type": "object"
     },
+    "command": {
+      "type": "array"
+    },
     "config": {
+      "additionalProperties": false,
       "properties": {
-        "additionalProperties": false,
         "calendars": {
           "items": {
             "additionalProperties": false,
@@ -47,6 +50,9 @@
                         "summary": {
                           "additionalProperties": false,
                           "properties": {
+                            "empty": {
+                              "type": "boolean"
+                            },
                             "prefix": {
                               "type": "string"
                             },
@@ -65,6 +71,9 @@
                         "description": {
                           "additionalProperties": false,
                           "properties": {
+                            "empty": {
+                              "type": "boolean"
+                            },
                             "prefix": {
                               "type": "string"
                             },
@@ -83,6 +92,30 @@
                         "location": {
                           "additionalProperties": false,
                           "properties": {
+                            "empty": {
+                              "type": "boolean"
+                            },
+                            "prefix": {
+                              "type": "string"
+                            },
+                            "suffix": {
+                              "type": "string"
+                            },
+                            "contains": {
+                              "type": "string"
+                            },
+                            "regex": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "url": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "empty": {
+                              "type": "boolean"
+                            },
                             "prefix": {
                               "type": "string"
                             },
@@ -157,6 +190,18 @@
                             }
                           },
                           "type": "object"
+                        },
+                        "url": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "replace": {
+                              "type": "string"
+                            },
+                            "remove": {
+                              "type": "boolean"
+                            }
+                          },
+                          "type": "object"
                         }
                       },
                       "type": "object"
@@ -186,6 +231,34 @@
               "name"
             ],
             "allOf": [
+              {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "public",
+                        "token"
+                      ],
+                      "properties": {
+                        "public": {
+                          "const": true
+                        }
+                      }
+                    },
+                    {
+                      "required": [
+                        "public",
+                        "token_file"
+                      ],
+                      "properties": {
+                        "public": {
+                          "const": true
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
               {
                 "anyOf": [
                   {
@@ -381,6 +454,9 @@
     "replicaCount": {
       "type": "integer"
     },
+    "revisionHistoryLimit": {
+      "type": "integer"
+    },
     "resources": {
       "properties": {
         "limits": {
@@ -475,12 +551,14 @@
   },
   "required": [
     "app",
+    "command",
     "image",
     "config",
     "extraResources",
     "livenessProbe",
     "readinessProbe",
-    "replicaCount"
+    "replicaCount",
+    "revisionHistoryLimit"
   ],
   "type": "object"
 }
