@@ -189,6 +189,9 @@
               },
               "token_file": {
                 "type": "string"
+              },
+              "user_agent": {
+                "type": "string"
               }
             },
             "required": [

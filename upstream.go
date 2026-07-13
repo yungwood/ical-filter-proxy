@@ -15,12 +15,12 @@ var upstreamHTTPClient = &http.Client{
 	Timeout: 15 * time.Second,
 }
 
-func fetchUpstreamCalendar(ctx context.Context, feedURL string) ([]byte, error) {
+func fetchUpstreamCalendar(ctx context.Context, feedURL string, userAgent string) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, feedURL, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "ical-filter-proxy/"+version)
+	req.Header.Set("User-Agent", upstreamUserAgent(userAgent))
 	req.Header.Set("Accept", "text/calendar, text/plain;q=0.8, */*;q=0.1")
 
 	resp, err := upstreamHTTPClient.Do(req)
@@ -44,6 +44,14 @@ func fetchUpstreamCalendar(ctx context.Context, feedURL string) ([]byte, error) 
 	}
 
 	return feedData, nil
+}
+
+func upstreamUserAgent(userAgent string) string {
+	if userAgent != "" {
+		return userAgent
+	}
+
+	return "ical-filter-proxy/" + version
 }
 
 func redactURL(rawURL string) string {
