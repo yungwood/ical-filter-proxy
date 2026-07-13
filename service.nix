@@ -2,18 +2,23 @@
   config,
   lib,
   pkgs,
+  self ? null,
   ...
 }:
 with lib; let
   cfg = config.services.ical-filter-proxy;
+  defaultPackage =
+    if self != null
+    then self.packages.${pkgs.stdenv.hostPlatform.system}.default
+    else pkgs.ical-filter-proxy;
 in {
   options.services.ical-filter-proxy = {
     enable = mkEnableOption "iCal Filter Proxy service";
 
     package = mkOption {
       type = types.package;
-      default = pkgs.ical-filter-proxy;
-      defaultText = literalExpression "pkgs.ical-filter-proxy";
+      default = defaultPackage;
+      defaultText = literalExpression "self.packages.${pkgs.stdenv.hostPlatform.system}.default";
       description = "The ical-filter-proxy package to use.";
     };
 
@@ -62,7 +67,7 @@ in {
                   description = "Authentication token for accessing the calendar feed.";
                 };
                 token_file = mkOption {
-                  type = types.nullOr types.path;
+                  type = types.nullOr types.str;
                   default = null;
                   description = "Path to file containing the authentication token.";
                 };
@@ -77,7 +82,7 @@ in {
                   description = "URL of the upstream iCal feed.";
                 };
                 feed_url_file = mkOption {
-                  type = types.nullOr types.path;
+                  type = types.nullOr types.str;
                   default = null;
                   description = "Path to file containing the feed URL.";
                 };
@@ -254,6 +259,16 @@ in {
                                     default = null;
                                     description = "Remove summary (set to empty string).";
                                   };
+                                  prefix = mkOption {
+                                    type = types.nullOr types.str;
+                                    default = null;
+                                    description = "Prefix summary with this string.";
+                                  };
+                                  suffix = mkOption {
+                                    type = types.nullOr types.str;
+                                    default = null;
+                                    description = "Suffix summary with this string.";
+                                  };
                                 };
                               });
                               default = null;
@@ -289,6 +304,16 @@ in {
                                     type = types.nullOr types.bool;
                                     default = null;
                                     description = "Remove description (set to empty string).";
+                                  };
+                                  prefix = mkOption {
+                                    type = types.nullOr types.str;
+                                    default = null;
+                                    description = "Prefix description with this string.";
+                                  };
+                                  suffix = mkOption {
+                                    type = types.nullOr types.str;
+                                    default = null;
+                                    description = "Suffix description with this string.";
                                   };
                                 };
                               });
