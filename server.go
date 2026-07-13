@@ -36,10 +36,10 @@ func newHTTPServer(address string, handler http.Handler) *http.Server {
 	}
 }
 
-func buildHTTPHandler(handler http.Handler, metrics *prometheusMetrics) http.Handler {
+func buildHTTPHandler(listener string, handler http.Handler, metrics *prometheusMetrics) http.Handler {
 	handler = recoveryMiddleware(handler)
 	if metrics != nil {
-		handler = metrics.middleware(handler)
+		handler = metrics.middleware(listener, handler)
 	}
 
 	return requestLoggingMiddleware(handler)
@@ -52,7 +52,7 @@ func buildHTTPServers(config Config, listenPort int, managementAddress string, m
 	servers := []managedHTTPServer{
 		{
 			name:   "public",
-			server: newHTTPServer(":"+strconv.Itoa(listenPort), buildHTTPHandler(publicMux, metrics)),
+			server: newHTTPServer(":"+strconv.Itoa(listenPort), buildHTTPHandler("public", publicMux, metrics)),
 		},
 	}
 
@@ -65,7 +65,7 @@ func buildHTTPServers(config Config, listenPort int, managementAddress string, m
 	registerInternalRoutes(managementMux, metrics)
 	return append(servers, managedHTTPServer{
 		name:   "management",
-		server: newHTTPServer(managementAddress, buildHTTPHandler(managementMux, metrics)),
+		server: newHTTPServer(managementAddress, buildHTTPHandler("management", managementMux, metrics)),
 	})
 }
 
