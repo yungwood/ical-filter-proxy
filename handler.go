@@ -26,7 +26,7 @@ func calendarFeedHandlerWithFetch(calendar Calendar, fetch calendarFetchFunc) ht
 		}
 
 		if !calendar.Public && !tokenMatches(r.URL.Query().Get("token"), calendar.Token) {
-			slog.Warn("unauthorized calendar access", "calendar", calendar.Name, "client_ip", r.RemoteAddr)
+			slog.Warn("unauthorized calendar access", "calendar", calendar.Name, "client_addr", r.RemoteAddr)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}

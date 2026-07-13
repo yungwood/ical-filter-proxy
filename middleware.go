@@ -49,7 +49,7 @@ func requestLoggingMiddleware(next http.Handler) http.Handler {
 			"path", r.URL.Path,
 			"status", statusCode,
 			"duration_ms", time.Since(startedAt).Milliseconds(),
-			"client_ip", r.RemoteAddr,
+			"client_addr", r.RemoteAddr,
 			"user_agent", r.UserAgent(),
 		)
 	})
@@ -63,7 +63,7 @@ func recoveryMiddleware(next http.Handler) http.Handler {
 					"recovered panic while processing http request",
 					"panic", fmt.Sprint(recovered),
 					"path", r.URL.Path,
-					"client_ip", r.RemoteAddr,
+					"client_addr", r.RemoteAddr,
 					"stack", string(debug.Stack()),
 				)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
