@@ -199,7 +199,7 @@ These match conditions are available for a string value:
 - `contains` - property must contain this value
 - `prefix` - property must start with this value
 - `suffix` - property must end with this value
-- `regex` - property must match the given regular expression (an invalid regex will result in no matches)
+- `regex` - property must match the given regular expression. Invalid regular expressions are rejected when the configuration is loaded.
 
 #### Transformations
 
@@ -214,6 +214,8 @@ The following transformations are available for strings:
 
 - `replace` - the property is replace with this value
 - `remove` - if `true` the property is set to a blank string
+- `prefix` - this value is added before the existing property value
+- `suffix` - this value is added after the existing property value
 
 ### Secrets
 
