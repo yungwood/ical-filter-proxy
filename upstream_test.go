@@ -34,7 +34,7 @@ func TestFetchUpstreamCalendarSuccess(t *testing.T) {
 }
 
 func TestFetchUpstreamCalendarRejectsNonSuccessStatus(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "upstream unavailable", http.StatusServiceUnavailable)
 	}))
 	defer server.Close()
@@ -49,7 +49,7 @@ func TestFetchUpstreamCalendarRejectsNonSuccessStatus(t *testing.T) {
 }
 
 func TestFetchUpstreamCalendarRejectsOversizedBody(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write(bytes.Repeat([]byte("x"), maxCalendarBytes+1))
 	}))
 	defer server.Close()
@@ -64,7 +64,7 @@ func TestFetchUpstreamCalendarRejectsOversizedBody(t *testing.T) {
 }
 
 func TestFetchUpstreamCalendarUsesContext(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		t.Fatal("server should not receive request for canceled context")
 	}))
 	defer server.Close()
