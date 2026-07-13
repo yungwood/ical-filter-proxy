@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/netip"
 	"runtime/debug"
 	"time"
 )
@@ -26,7 +27,7 @@ func (r *statusRecorder) Write(body []byte) (int, error) {
 	return r.ResponseWriter.Write(body)
 }
 
-func requestLoggingMiddleware(next http.Handler) http.Handler {
+func requestLoggingMiddleware(next http.Handler, trustedProxyCIDRs []netip.Prefix) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if isHealthEndpoint(r.URL.Path) {
 			next.ServeHTTP(w, r)
@@ -48,7 +49,7 @@ func requestLoggingMiddleware(next http.Handler) http.Handler {
 			"path", r.URL.Path,
 			"status", statusCode,
 			"duration_ms", time.Since(startedAt).Milliseconds(),
-			"client_addr", r.RemoteAddr,
+			"client_addr", requestClientAddr(r, trustedProxyCIDRs),
 			"user_agent", r.UserAgent(),
 		}
 		if calendarName, ok := calendarNameFromPath(r.URL.Path); ok {
@@ -59,7 +60,7 @@ func requestLoggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func recoveryMiddleware(next http.Handler) http.Handler {
+func recoveryMiddleware(next http.Handler, trustedProxyCIDRs []netip.Prefix) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if recovered := recover(); recovered != nil {
@@ -67,7 +68,7 @@ func recoveryMiddleware(next http.Handler) http.Handler {
 					"panic", fmt.Sprint(recovered),
 					"method", r.Method,
 					"path", r.URL.Path,
-					"client_addr", r.RemoteAddr,
+					"client_addr", requestClientAddr(r, trustedProxyCIDRs),
 					"stack", string(debug.Stack()),
 				}
 				if calendarName, ok := calendarNameFromPath(r.URL.Path); ok {

@@ -184,6 +184,7 @@ Most runtime flags can also be set with environment variables. CLI flags take pr
 | `-metrics`                 | `ICAL_FILTER_PROXY_METRICS`                 | Enable Prometheus metrics.                              |
 | `-metrics-calendar-labels` | `ICAL_FILTER_PROXY_METRICS_CALENDAR_LABELS` | Enable per-calendar metric labels.                      |
 | `-management-address`      | `ICAL_FILTER_PROXY_MANAGEMENT_ADDRESS`      | Address for liveness, readiness, and metrics endpoints. |
+| `-trusted-proxy-cidr`      | `ICAL_FILTER_PROXY_TRUSTED_PROXY_CIDRS`     | Trusted reverse proxy CIDRs for forwarded addresses.    |
 
 `-version` is CLI-only.
 

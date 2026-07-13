@@ -59,6 +59,7 @@ func TestCalendarFeedHandlerUnauthorized(t *testing.T) {
 			fetchCalled = true
 			return []byte("should not be called"), nil
 		},
+		nil,
 	)
 
 	req := testRequest(t, "/calendars/private/feed?token=wrong")
@@ -81,6 +82,7 @@ func TestCalendarFeedHandlerSuccess(t *testing.T) {
 		func(context.Context) ([]byte, error) {
 			return []byte("BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n"), nil
 		},
+		nil,
 	)
 
 	req := testRequest(t, "/calendars/private/feed?token=secret")
@@ -106,6 +108,7 @@ func TestCalendarFeedHandlerHeadSuccess(t *testing.T) {
 		func(context.Context) ([]byte, error) {
 			return []byte("BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n"), nil
 		},
+		nil,
 	)
 
 	req := testRequestWithMethod(t, http.MethodHead, "/calendars/private/feed?token=secret")
@@ -133,6 +136,7 @@ func TestCalendarFeedHandlerMethodNotAllowed(t *testing.T) {
 			fetchCalled = true
 			return []byte("should not be called"), nil
 		},
+		nil,
 	)
 
 	req := testRequestWithMethod(t, http.MethodPost, "/calendars/private/feed?token=secret")
@@ -174,6 +178,7 @@ func TestCalendarFeedHandlerPublicCalendarIgnoresToken(t *testing.T) {
 				func(context.Context) ([]byte, error) {
 					return []byte("BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n"), nil
 				},
+				nil,
 			)
 
 			req := testRequest(t, tt.target)
@@ -194,6 +199,7 @@ func TestCalendarFeedHandlerUpstreamError(t *testing.T) {
 		func(context.Context) ([]byte, error) {
 			return nil, errors.New("upstream failed")
 		},
+		nil,
 	)
 
 	req := testRequest(t, "/calendars/private/feed?token=secret")
