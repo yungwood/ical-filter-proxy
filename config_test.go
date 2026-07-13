@@ -9,9 +9,9 @@ import (
 
 func TestLoadConfig(t *testing.T) {
 	tests := []struct {
-		name string
-		yaml string
-		want bool
+		name    string
+		yaml    string
+		wantErr bool
 	}{
 		{
 			name: "valid public calendar",
@@ -21,7 +21,7 @@ calendars:
     public: true
     feed_url: https://example.com/feed.ics
 `,
-			want: true,
+			wantErr: false,
 		},
 		{
 			name: "valid token calendar",
@@ -31,12 +31,12 @@ calendars:
     token: secret
     feed_url: https://example.com/feed.ics
 `,
-			want: true,
+			wantErr: false,
 		},
 		{
-			name: "empty config",
-			yaml: `{}`,
-			want: false,
+			name:    "empty config",
+			yaml:    `{}`,
+			wantErr: true,
 		},
 		{
 			name: "invalid feed url",
@@ -46,7 +46,7 @@ calendars:
     public: true
     feed_url: ftp://example.com/feed.ics
 `,
-			want: false,
+			wantErr: true,
 		},
 		{
 			name: "tokenless non-public calendar",
@@ -55,7 +55,7 @@ calendars:
   - name: private
     feed_url: https://example.com/feed.ics
 `,
-			want: false,
+			wantErr: true,
 		},
 		{
 			name: "public calendar with token",
@@ -66,7 +66,7 @@ calendars:
     token: secret
     feed_url: https://example.com/feed.ics
 `,
-			want: false,
+			wantErr: true,
 		},
 		{
 			name: "public calendar with token_file",
@@ -77,7 +77,7 @@ calendars:
     token_file: /run/secrets/token
     feed_url: https://example.com/feed.ics
 `,
-			want: false,
+			wantErr: true,
 		},
 		{
 			name: "invalid yaml",
@@ -87,7 +87,7 @@ calendars:
     public: true
     feed_url: [
 `,
-			want: false,
+			wantErr: true,
 		},
 	}
 
@@ -95,20 +95,18 @@ calendars:
 		t.Run(tt.name, func(t *testing.T) {
 			configFile := writeTempFile(t, "config-*.yaml", tt.yaml)
 
-			var config Config
-			got := config.LoadConfig(configFile)
-			if got != tt.want {
-				t.Fatalf("LoadConfig() = %v, want %v", got, tt.want)
+			_, err := LoadConfig(configFile)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("LoadConfig() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
 func TestLoadConfigMissingFile(t *testing.T) {
-	var config Config
-	got := config.LoadConfig(filepath.Join(t.TempDir(), "missing.yaml"))
-	if got {
-		t.Fatal("LoadConfig() = true, want false")
+	_, err := LoadConfig(filepath.Join(t.TempDir(), "missing.yaml"))
+	if err == nil {
+		t.Fatal("LoadConfig() returned nil error")
 	}
 }
 
@@ -124,9 +122,9 @@ calendars:
     feed_url_file: `+feedURLFile+`
 `)
 
-	var config Config
-	if !config.LoadConfig(configFile) {
-		t.Fatal("LoadConfig() = false, want true")
+	config, err := LoadConfig(configFile)
+	if err != nil {
+		t.Fatalf("LoadConfig() returned error: %v", err)
 	}
 
 	if got := config.Calendars[0].Token; got != "file-token" {
@@ -267,10 +265,9 @@ calendars:
 		t.Run(tt.name, func(t *testing.T) {
 			configFile := writeTempFile(t, "config-*.yaml", tt.yaml)
 
-			var config Config
-			got := config.LoadConfig(configFile)
-			if got {
-				t.Fatal("LoadConfig() = true, want false")
+			_, err := LoadConfig(configFile)
+			if err == nil {
+				t.Fatal("LoadConfig() returned nil error")
 			}
 		})
 	}

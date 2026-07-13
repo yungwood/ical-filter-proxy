@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log/slog"
+	"errors"
+	"fmt"
 	"os"
 	"strings"
 
@@ -16,22 +17,21 @@ type Config struct {
 // LoadConfig loads YAML config, resolves secret files, and validates
 // calendar-level settings. Rule compilation and regex validation happen when
 // building RuntimeConfig.
-func (config *Config) LoadConfig(file string) bool {
+func LoadConfig(file string) (Config, error) {
 	data, err := os.ReadFile(file)
 	if err != nil {
-		slog.Error("Unable to open config file! You can use -config to specify a different file", "file", file)
-		return false
+		return Config{}, fmt.Errorf("open config file %q: %w", file, err)
 	}
+
+	var config Config
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		slog.Error("Error while unmarshalling yaml! Check config file is valid", "file", file)
-		return false
+		return Config{}, fmt.Errorf("parse config file %q: %w", file, err)
 	}
 
 	// ensure calendars exist
 	if len(config.Calendars) == 0 {
-		slog.Error("No calendars found! Configuration should define at least one calendar")
-		return false
+		return Config{}, errors.New("no calendars configured")
 	}
 
 	// validate calendar configs and load secrets
@@ -41,49 +41,37 @@ func (config *Config) LoadConfig(file string) bool {
 		calendarConfig := &config.Calendars[i]
 
 		if calendarConfig.Public && (calendarConfig.Token != "" || calendarConfig.TokenFile != "") {
-			slog.Error("Public calendar cannot define token or token_file", "calendar", calendarConfig.Name)
-			return false
+			return Config{}, fmt.Errorf("calendar %q: public calendar cannot define token or token_file", calendarConfig.Name)
 		}
 
 		// check if url should be loaded from file
 		if calendarConfig.FeedURLFile != "" {
 			calendarConfig.FeedURL, err = readSecretFile(calendarConfig.FeedURLFile)
 			if err != nil {
-				slog.Error("Unable to read feed_url_file", "calendar", calendarConfig.Name, "feed_url_file", calendarConfig.FeedURLFile)
-				return false
+				return Config{}, fmt.Errorf("calendar %q: read feed_url_file %q: %w", calendarConfig.Name, calendarConfig.FeedURLFile, err)
 			}
 		}
 
 		// check if url seems valid
 		if !strings.HasPrefix(calendarConfig.FeedURL, "http://") && !strings.HasPrefix(calendarConfig.FeedURL, "https://") {
-			slog.Debug("Calendar URL must begin with http:// or https://", "calendar", calendarConfig.Name, "feed_url", len(calendarConfig.Filters))
-			return false
+			return Config{}, fmt.Errorf("calendar %q: feed_url must begin with http:// or https://", calendarConfig.Name)
 		}
 
 		// check if token should be loaded from file
 		if calendarConfig.TokenFile != "" {
 			calendarConfig.Token, err = readSecretFile(calendarConfig.TokenFile)
 			if err != nil {
-				slog.Error("Unable to read token_file", "calendar", calendarConfig.Name, "token_file", calendarConfig.TokenFile)
-				return false
+				return Config{}, fmt.Errorf("calendar %q: read token_file %q: %w", calendarConfig.Name, calendarConfig.TokenFile, err)
 			}
 		}
 
-		if calendarConfig.Public {
-			slog.Warn("Calendar has no token set. Authentication will be disabled", "calendar", calendarConfig.Name)
-		} else if calendarConfig.Token == "" {
-			slog.Error("Private calendar must define token or token_file", "calendar", calendarConfig.Name)
-			return false
+		if !calendarConfig.Public && calendarConfig.Token == "" {
+			return Config{}, fmt.Errorf("calendar %q: private calendar must define token or token_file", calendarConfig.Name)
 		}
 
-		// Print a warning if the calendar has no filters
-		if len(calendarConfig.Filters) == 0 {
-			slog.Warn("Calendar has no filters and will be proxy-only", "calendar", calendarConfig.Name)
-			continue
-		}
 	}
 
-	return true // config is parsed successfully
+	return config, nil
 }
 
 func readSecretFile(filePath string) (string, error) {
