@@ -1,0 +1,51 @@
+package main
+
+import (
+	"context"
+	"crypto/subtle"
+	"log/slog"
+	"net/http"
+)
+
+type calendarFetchFunc func(context.Context) ([]byte, error)
+
+func calendarFeedHandler(httpPath string, calendarConfig CalendarConfig) http.HandlerFunc {
+	return calendarFeedHandlerWithFetch(httpPath, calendarConfig, calendarConfig.fetch)
+}
+
+func calendarFeedHandlerWithFetch(httpPath string, calendarConfig CalendarConfig, fetch calendarFetchFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		slog.Debug("Received request for calendar", "http_path", httpPath, "calendar", calendarConfig.Name, "client_ip", r.RemoteAddr)
+
+		// validate token
+		token := r.URL.Query().Get("token")
+		if !tokenMatches(token, calendarConfig.Token) {
+			slog.Warn("Unauthorized access attempt", "client_ip", r.RemoteAddr)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// fetch and filter upstream calendar
+		feed, err := fetch(r.Context())
+		if err != nil {
+			slog.Error("Error fetching and filtering feed", "error", err)
+			http.Error(w, "Bad Gateway", http.StatusBadGateway)
+			return
+		}
+
+		// return calendar
+		w.Header().Set("Content-Type", "text/calendar")
+		_, err = w.Write(feed)
+		if err != nil {
+			slog.Error("Error writing response", "error", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		slog.Info("Calendar request processed", "http_path", httpPath, "calendar", calendarConfig.Name, "client_ip", r.RemoteAddr)
+	}
+}
+
+func tokenMatches(token string, expectedToken string) bool {
+	return subtle.ConstantTimeCompare([]byte(token), []byte(expectedToken)) == 1
+}

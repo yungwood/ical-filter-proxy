@@ -75,37 +75,7 @@ func main() {
 		// configure HTTP endpoint
 		httpPath := "/calendars/" + calendarConfig.Name + "/feed"
 		slog.Debug("Configuring endpoint", "calendar", calendarConfig.Name, "http_path", httpPath)
-		http.HandleFunc(httpPath, func(w http.ResponseWriter, r *http.Request) {
-
-			slog.Debug("Received request for calendar", "http_path", httpPath, "calendar", calendarConfig.Name, "client_ip", r.RemoteAddr)
-
-			// validate token
-			token := r.URL.Query().Get("token")
-			if token != calendarConfig.Token {
-				slog.Warn("Unauthorized access attempt", "client_ip", r.RemoteAddr)
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
-
-			// fetch and filter upstream calendar
-			feed, err := calendarConfig.fetch(r.Context())
-			if err != nil {
-				slog.Error("Error fetching and filtering feed", "error", err)
-				http.Error(w, "Bad Gateway", http.StatusBadGateway)
-				return
-			}
-
-			// return calendar
-			w.Header().Set("Content-Type", "text/calendar")
-			_, err = w.Write(feed)
-			if err != nil {
-				slog.Error("Error writing response", "error", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-
-			slog.Info("Calendar request processed", "http_path", httpPath, "calendar", calendarConfig.Name, "client_ip", r.RemoteAddr)
-		})
+		http.HandleFunc(httpPath, calendarFeedHandler(httpPath, calendarConfig))
 
 	}
 
