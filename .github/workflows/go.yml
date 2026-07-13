@@ -1,0 +1,76 @@
+name: go
+
+on:
+  push:
+    branches:
+      - "*"
+    paths:
+      - .github/workflows/go.yml
+      - go.mod
+      - go.sum
+      - "*.go"
+  pull_request:
+    paths:
+      - .github/workflows/go.yml
+      - go.mod
+      - go.sum
+      - "*.go"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gofmt:
+    name: gofmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - name: Check formatting
+        run: |
+          files="$(gofmt -l *.go)"
+          if [ -n "$files" ]; then
+            echo "$files"
+            exit 1
+          fi
+
+  tidy:
+    name: tidy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - name: Check go.mod and go.sum
+        run: go mod tidy -diff
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - name: Run tests
+        run: go test ./...
+
+  golangci:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.12.2
