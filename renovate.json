@@ -26,6 +26,15 @@
       ],
       "groupName": "github actions",
       "groupSlug": "github-actions"
+    },
+    {
+      "description": "Run go mod tidy after Go module updates",
+      "matchManagers": [
+        "gomod"
+      ],
+      "postUpdateOptions": [
+        "gomodTidy"
+      ]
     }
   ],
   "customManagers": [
