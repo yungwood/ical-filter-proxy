@@ -106,7 +106,7 @@ func TestRegisterInternalRoutesMetricsDisabled(t *testing.T) {
 
 func TestRegisterInternalRoutesMetricsEnabled(t *testing.T) {
 	mux := http.NewServeMux()
-	registerInternalRoutes(mux, newPrometheusMetrics())
+	registerInternalRoutes(mux, newPrometheusMetrics(false))
 
 	req := testRequest(t, "/metrics")
 	rr := httptest.NewRecorder()

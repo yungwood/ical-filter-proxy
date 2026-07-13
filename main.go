@@ -22,13 +22,14 @@ func main() {
 
 	// command-line args
 	var (
-		configFile     string
-		debugLogging   bool
-		jsonLogging    bool
-		listenPort     int
-		validateConfig bool
-		printVersion   bool
-		metricsEnabled bool
+		configFile             string
+		debugLogging           bool
+		jsonLogging            bool
+		listenPort             int
+		validateConfig         bool
+		printVersion           bool
+		metricsEnabled         bool
+		calendarMetricsEnabled bool
 	)
 	flag.StringVar(&configFile, "config", "config.yaml", "config file")
 	flag.BoolVar(&debugLogging, "debug", false, "enable debug logging")
@@ -37,6 +38,7 @@ func main() {
 	flag.IntVar(&listenPort, "port", 8080, "listening port for api")
 	flag.BoolVar(&validateConfig, "validate", false, "validate config and exit")
 	flag.BoolVar(&metricsEnabled, "metrics", false, "enable prometheus metrics endpoint")
+	flag.BoolVar(&calendarMetricsEnabled, "metrics-calendar-labels", false, "enable per-calendar prometheus metrics")
 	flag.Parse()
 
 	// print version and exit
@@ -79,7 +81,7 @@ func main() {
 
 	var metrics *prometheusMetrics
 	if metricsEnabled {
-		metrics = newPrometheusMetrics()
+		metrics = newPrometheusMetrics(calendarMetricsEnabled)
 	}
 
 	mux := http.NewServeMux()
