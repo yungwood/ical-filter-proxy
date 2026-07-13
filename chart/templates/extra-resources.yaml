@@ -1,0 +1,4 @@
+{{- range .Values.extraResources }}
+---
+{{ include "tplRender" (dict "value" . "context" $) }}
+{{- end }}
