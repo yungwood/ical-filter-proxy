@@ -7,12 +7,6 @@ on:
       - "*"
     tags:
       - "*"
-    paths:
-      - ".github/workflows/docker.yaml"
-      - "Dockerfile"
-      - "go.mod"
-      - "go.sum"
-      - "*.go"
   pull_request:
     branches:
       - "main"
@@ -38,6 +32,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Lint
         uses: hadolint/hadolint-action@v3.3.0
@@ -61,6 +57,22 @@ jobs:
 
           echo "VERSION=${version}" >> "$GITHUB_ENV"
 
+      - name: Determine push eligibility
+        id: push-eligibility
+        run: |
+          should_push=false
+
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            should_push=true
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            git fetch --no-tags origin main:refs/remotes/origin/main
+            if git merge-base --is-ancestor "${GITHUB_SHA}" origin/main; then
+              should_push=true
+            fi
+          fi
+
+          echo "should_push=${should_push}" >> "$GITHUB_OUTPUT"
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v6
@@ -73,7 +85,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
 
       - name: Login to DockerHub
-        if: github.event_name != 'pull_request'
+        if: steps.push-eligibility.outputs.should_push == 'true'
         uses: docker/login-action@v4
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
@@ -83,7 +95,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ steps.push-eligibility.outputs.should_push == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
