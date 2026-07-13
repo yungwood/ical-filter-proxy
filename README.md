@@ -174,18 +174,20 @@ Prometheus metrics can be enabled with `-metrics`, which exposes `/metrics`. Met
 
 Most runtime flags can also be set with environment variables. CLI flags take precedence over environment variables.
 
-| Flag | Environment variable | Description |
-| --- | --- | --- |
-| `-config` | `ICAL_FILTER_PROXY_CONFIG` | Path to the YAML config file. |
-| `-address` | `ICAL_FILTER_PROXY_ADDRESS` | Address for the public calendar listener. |
-| `-debug` | `ICAL_FILTER_PROXY_DEBUG` | Enable debug logging. |
-| `-json` | `ICAL_FILTER_PROXY_JSON` | Emit logs as JSON. |
-| `-validate` | `ICAL_FILTER_PROXY_VALIDATE` | Validate config and exit. |
-| `-metrics` | `ICAL_FILTER_PROXY_METRICS` | Enable Prometheus metrics. |
-| `-metrics-calendar-labels` | `ICAL_FILTER_PROXY_METRICS_CALENDAR_LABELS` | Enable per-calendar metric labels. |
-| `-management-address` | `ICAL_FILTER_PROXY_MANAGEMENT_ADDRESS` | Address for liveness, readiness, and metrics endpoints. |
+| Flag                       | Environment variable                        | Description                                             |
+| -------------------------- | ------------------------------------------- | ------------------------------------------------------- |
+| `-config`                  | `ICAL_FILTER_PROXY_CONFIG`                  | Path to the YAML config file.                           |
+| `-address`                 | `ICAL_FILTER_PROXY_ADDRESS`                 | Address for the public calendar listener.               |
+| `-debug`                   | `ICAL_FILTER_PROXY_DEBUG`                   | Enable debug logging.                                   |
+| `-json`                    | `ICAL_FILTER_PROXY_JSON`                    | Emit logs as JSON.                                      |
+| `-validate`                | `ICAL_FILTER_PROXY_VALIDATE`                | Validate config and exit.                               |
+| `-metrics`                 | `ICAL_FILTER_PROXY_METRICS`                 | Enable Prometheus metrics.                              |
+| `-metrics-calendar-labels` | `ICAL_FILTER_PROXY_METRICS_CALENDAR_LABELS` | Enable per-calendar metric labels.                      |
+| `-management-address`      | `ICAL_FILTER_PROXY_MANAGEMENT_ADDRESS`      | Address for liveness, readiness, and metrics endpoints. |
 
 `-version` is CLI-only.
+
+Debug logging includes calendar names, request paths, event summaries, and filter descriptions for debugging filter logic. Avoid enabling `-debug` in environments where logs are broadly accessible or retained longer than necessary.
 
 ### Filters
 
