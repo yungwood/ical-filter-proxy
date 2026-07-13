@@ -138,6 +138,17 @@ func TestFilterMatchesEvent(t *testing.T) {
 	}
 }
 
+func TestEventStringProperty(t *testing.T) {
+	event := testEvent("team calendar event")
+
+	if got := eventStringProperty(*event, ics.ComponentPropertySummary); got != "team calendar event" {
+		t.Fatalf("summary = %q, want team calendar event", got)
+	}
+	if got := eventStringProperty(*event, ics.ComponentPropertyDescription); got != "" {
+		t.Fatalf("missing description = %q, want empty string", got)
+	}
+}
+
 func TestFilterTransformEvent(t *testing.T) {
 	tests := []struct {
 		name      string
