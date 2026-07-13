@@ -89,6 +89,14 @@ service:
   type: ClusterIP
   port: 8080
 
+management:
+  enabled: true
+  address: ""  # defaults to :<management.service.port>
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 9090
+
 ingress:
   enabled: false
   className: ""

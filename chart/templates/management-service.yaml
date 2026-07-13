@@ -1,0 +1,18 @@
+{{- if and .Values.management.enabled .Values.management.service.enabled -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ical-filter-proxy.fullname" . }}-management
+  labels:
+    {{- include "ical-filter-proxy.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.management.service.type }}
+  ports:
+    - port: {{ .Values.management.service.port }}
+      targetPort: management
+      protocol: TCP
+      name: management
+  selector:
+    {{- include "ical-filter-proxy.selectorLabels" . | nindent 4 }}
+{{- end }}

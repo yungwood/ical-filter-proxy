@@ -39,6 +39,10 @@ spec:
           args:
             - -address
             - {{ .Values.app.address | default (printf ":%v" (.Values.service.port | int)) | quote }}
+          {{- if .Values.management.enabled }}
+            - -management-address
+            - {{ .Values.management.address | default (printf ":%v" (.Values.management.service.port | int)) | quote }}
+          {{- end }}
           {{- with .Values.args }}
             {{- toYaml . | nindent 12  }}
           {{- end }}
@@ -58,10 +62,23 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          {{- if .Values.management.enabled }}
+            - name: management
+              containerPort: {{ .Values.management.service.port }}
+              protocol: TCP
+          {{- end }}
+          {{- $livenessProbe := deepCopy .Values.livenessProbe }}
+          {{- if and .Values.management.enabled (eq (dig "httpGet" "port" "" $livenessProbe) "http") }}
+          {{- $_ := set $livenessProbe.httpGet "port" "management" }}
+          {{- end }}
           livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
+            {{- toYaml $livenessProbe | nindent 12 }}
+          {{- $readinessProbe := deepCopy .Values.readinessProbe }}
+          {{- if and .Values.management.enabled (eq (dig "httpGet" "port" "" $readinessProbe) "http") }}
+          {{- $_ := set $readinessProbe.httpGet "port" "management" }}
+          {{- end }}
           readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
+            {{- toYaml $readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
