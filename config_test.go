@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -211,6 +212,9 @@ func TestConfigCompileRejectsInvalidRegex(t *testing.T) {
 	_, err := config.Compile()
 	if err == nil {
 		t.Fatal("Compile() returned nil error")
+	}
+	if !strings.Contains(err.Error(), `calendar "public" filter 0`) || !strings.Contains(err.Error(), `summary: invalid regex`) {
+		t.Fatalf("Compile() error = %q, want calendar/filter/property context", err)
 	}
 }
 

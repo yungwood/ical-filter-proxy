@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 
 	ics "github.com/arran4/golang-ical"
@@ -105,19 +106,19 @@ type EventMatchRules struct {
 func (rules EventMatchRulesConfig) compile() (EventMatchRules, error) {
 	summary, err := rules.Summary.compile()
 	if err != nil {
-		return EventMatchRules{}, err
+		return EventMatchRules{}, fmt.Errorf("summary: %w", err)
 	}
 	description, err := rules.Description.compile()
 	if err != nil {
-		return EventMatchRules{}, err
+		return EventMatchRules{}, fmt.Errorf("description: %w", err)
 	}
 	location, err := rules.Location.compile()
 	if err != nil {
-		return EventMatchRules{}, err
+		return EventMatchRules{}, fmt.Errorf("location: %w", err)
 	}
 	url, err := rules.URL.compile()
 	if err != nil {
-		return EventMatchRules{}, err
+		return EventMatchRules{}, fmt.Errorf("url: %w", err)
 	}
 
 	return EventMatchRules{
