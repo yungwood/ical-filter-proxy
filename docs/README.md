@@ -28,6 +28,12 @@ npm run build
 
 This command generates static content into the `build` directory and can be served using any static contents hosting service.
 
+## Publishing
+
+Docs changes are validated by CI on pushes and pull requests, but the public
+GitHub Pages site is deployed only from release tags. The published docs should
+represent the latest tagged release.
+
 ## Typecheck
 
 ```bash
