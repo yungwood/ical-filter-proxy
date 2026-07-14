@@ -2,7 +2,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/yungwood/ical-filter-proxy">
-    <img src="logo.png" alt="Logo" width="120" height="120">
+    <img src="docs/static/img/logo.png" alt="Logo" width="120" height="120">
   </a>
 
   <h3 align="center">iCal Filter Proxy</h3>
@@ -18,6 +18,9 @@ Do you have iCal feeds with a bunch of stuff you _don't_ need? Do you want to mo
 
 iCal Filter Proxy is a simple service for proxying multiple iCal feeds while applying a list of filters to remove or modify events to suit your use case.
 
+This README is the quickstart and project overview. Expanded guides and reference
+docs live in the Docusaurus site under [`docs/`](./docs).
+
 ### Features
 
 - Proxy multiple calendars
@@ -30,7 +33,7 @@ iCal Filter Proxy is a simple service for proxying multiple iCal feeds while app
 - Go
 - [golang-ical](https://github.com/arran4/golang-ical)
 - [yaml.v3](https://github.com/go-yaml/yaml/tree/v3.0.1)
-- [DALL-E 2](https://openai.com/index/dall-e-2/) (app icon)
+- [OpenAI image generation](https://openai.com/index/image-generation-api/) (app icon)
 
 ## Setup
 
@@ -279,7 +282,7 @@ There are a few more features I would like to add before I call the project "sta
 - [ ] Time based event conditions
 - [ ] Caching
 - [x] Prometheus metrics
-- [ ] Testing
+- [x] Testing
 
 ## Contributing
 
