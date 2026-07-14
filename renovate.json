@@ -5,7 +5,8 @@
     "dockerfile",
     "github-actions",
     "gomod",
-    "nix"
+    "nix",
+    "npm"
   ],
   "packageRules": [
     {
@@ -35,6 +36,48 @@
       "postUpdateOptions": [
         "gomodTidy"
       ]
+    },
+    {
+      "description": "Group docs npm patch and minor updates",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchFileNames": [
+        "docs/package.json"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "docs npm minor and patch dependencies",
+      "groupSlug": "docs-npm-minor-patch"
+    },
+    {
+      "description": "Group docs npm major updates",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchFileNames": [
+        "docs/package.json"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "groupName": "docs npm major dependencies",
+      "groupSlug": "docs-npm-major"
+    },
+    {
+      "description": "Hold TypeScript below 7 until Docusaurus tsconfig supports it",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchFileNames": [
+        "docs/package.json"
+      ],
+      "matchPackageNames": [
+        "typescript"
+      ],
+      "allowedVersions": "<7.0.0"
     }
   ],
   "customManagers": [
