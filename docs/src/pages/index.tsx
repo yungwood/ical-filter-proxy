@@ -130,7 +130,7 @@ function HomepageSections(): ReactNode {
         links={[
           {to: '/filtering', label: 'Filtering overview'},
           {to: '/recipes/remove-cancelled-events', label: 'Example: Remove cancelled events'},
-          {to: '/recipes/clean-opsgenie-feed', label: 'Example: Clean OpsGenie feeds'},
+          {to: '/recipes/keep-only-matching-events', label: 'Example: Keep only matching events'},
         ]}
         language="yaml"
         codeTitle="config.yaml"

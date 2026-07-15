@@ -10,13 +10,16 @@ Enable Prometheus metrics with `-metrics`.
 ical-filter-proxy -metrics
 ```
 
-Metrics are exposed at `/metrics`.
+Metrics are exposed at `/metrics` only when metrics are enabled.
 
 Use a management listener to keep metrics separate from public calendar feeds:
 
 ```bash
 ical-filter-proxy -metrics -management-address 127.0.0.1:9090
 ```
+
+When `-management-address` is set, `/metrics` is served on the management
+listener. Without it, `/metrics` is served on the public listener.
 
 Per-calendar metric labels are disabled by default. Enable them with:
 

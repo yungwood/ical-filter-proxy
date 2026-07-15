@@ -72,6 +72,36 @@ metrics:
 This exposes `/metrics` on the management service. The `ServiceMonitor` also
 targets the management service.
 
+## Runtime Values
+
+The chart maps common runtime settings to application flags:
+
+| Value | Description |
+| --- | --- |
+| `app.address` | Public listener address. Defaults to `:<service.port>`. |
+| `management.enabled` | Enables a separate management listener. Defaults to `true`. |
+| `management.address` | Management listener address. Defaults to `:<management.service.port>`. |
+| `metrics.enabled` | Adds `-metrics` and exposes `/metrics`. |
+| `metrics.calendarLabels` | Adds `-metrics-calendar-labels`. |
+
+Use `env` and `envFrom` to pass application environment variables, including
+`ICAL_FILTER_PROXY_TRUSTED_PROXY_CIDRS` or config value substitutions:
+
+```yaml title="values.yaml"
+env:
+  - name: ICAL_FILTER_PROXY_TRUSTED_PROXY_CIDRS
+    value: 10.0.0.0/8
+envFrom:
+  - secretRef:
+      name: ical-filter-proxy-env
+```
+
+Set `revisionHistoryLimit` when you need to keep more or fewer old ReplicaSets:
+
+```yaml title="values.yaml"
+revisionHistoryLimit: 5
+```
+
 ## Secret-Backed Config Values
 
 Use mounted secret files when upstream feed URLs or tokens should not be stored

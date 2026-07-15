@@ -16,7 +16,9 @@ If private calendar feeds use token authentication, expose them over HTTPS at
 the proxy or load balancer layer. Tokens are passed as query parameters.
 :::
 
-Calendar feed endpoints allow only `GET` and `HEAD`.
+Calendar feed endpoints allow only `GET` and `HEAD`. `HEAD` validates access
+and fetches the upstream calendar like `GET`, but returns headers without a
+response body.
 
 Unsupported methods return `405 Method Not Allowed` with:
 
