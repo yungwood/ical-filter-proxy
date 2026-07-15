@@ -2,6 +2,7 @@ import type {ReactNode} from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import CodeBlock from '@theme/CodeBlock';
 import Layout from '@theme/Layout';
 import Heading from '@theme/Heading';
@@ -9,11 +10,13 @@ import Heading from '@theme/Heading';
 import styles from './index.module.css';
 
 function HomepageHeader() {
+  const logoUrl = useBaseUrl('/img/logo.svg');
+
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container">
         <img
-          src={require('../../static/img/logo.png').default}
+          src={logoUrl}
           alt="iCal Filter Proxy logo"
           className={styles.heroLogo}
         />

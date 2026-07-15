@@ -7,7 +7,7 @@ const version = process.env.BUILD_VERSION || 'dev';
 const config: Config = {
   title: 'iCal Filter Proxy',
   tagline: 'iCal proxy with support for user-defined filtering rules',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/logo.svg',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -48,7 +48,7 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: 'img/logo.png',
+    image: 'img/og-image.png',
     colorMode: {
       respectPrefersColorScheme: true,
     },
@@ -56,7 +56,7 @@ const config: Config = {
       title: 'iCal Filter Proxy',
       logo: {
         alt: 'iCal Filter Proxy Logo',
-        src: 'img/logo.png',
+        src: 'img/logo.svg',
       },
       items: [
         {
