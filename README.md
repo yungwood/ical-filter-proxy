@@ -8,7 +8,9 @@
   <h3 align="center">iCal Filter Proxy</h3>
 
   <p align="center">
-    iCal proxy with support for user-defined filtering rules
+    Proxy, filter, and transform noisy iCalendar feeds.
+    <br />
+    <a href="https://yungwood.github.io/ical-filter-proxy/"><strong>Read the docs</strong></a>
   </p>
 </div>
 
@@ -18,266 +20,117 @@ Do you have iCal feeds with a bunch of stuff you _don't_ need? Do you want to mo
 
 iCal Filter Proxy is a simple service for proxying multiple iCal feeds while applying a list of filters to remove or modify events to suit your use case.
 
-This README is the quickstart and project overview. Expanded guides and reference
-docs live in the Docusaurus site under [`docs/`](./docs).
+It supports:
 
-### Features
+- Multiple upstream calendars
+- Private or public published feeds
+- Ordered per-calendar filter rules
+- Use match conditions and transformations to modify or remove events
+- Docker, Helm, and Nix deployment options
+- Prometheus metrics
 
-- Proxy multiple calendars
-- Define a list of filters per calendar
-- Match events using basic text and regex conditions
-- Remove or modify events as they are proxied
+## Documentation
 
-### Built With
+The full documentation site is published at:
 
-- Go
-- [golang-ical](https://github.com/arran4/golang-ical)
-- [yaml.v3](https://github.com/go-yaml/yaml/tree/v3.0.1)
-- [OpenAI image generation](https://openai.com/index/image-generation-api/) (app icon)
+<https://yungwood.github.io/ical-filter-proxy/>
 
-## Setup
+Useful entry points:
 
-### Docker
+- [Quick Start](https://yungwood.github.io/ical-filter-proxy/getting-started/)
+- [Docker and Compose](https://yungwood.github.io/ical-filter-proxy/installation/docker/)
+- [Kubernetes / Helm](https://yungwood.github.io/ical-filter-proxy/installation/kubernetes-helm/)
+- [Calendar Configuration](https://yungwood.github.io/ical-filter-proxy/configuration/calendars/)
+- [Filtering](https://yungwood.github.io/ical-filter-proxy/filtering/)
+- [Recipes](https://yungwood.github.io/ical-filter-proxy/recipes/remove-cancelled-events/)
+- [CLI Flags](https://yungwood.github.io/ical-filter-proxy/reference/cli-flags/)
 
-Docker images are published to [Docker Hub](https://hub.docker.com/r/yungwood/ical-filter-proxy). You'll need a config file (see below) mounted into the container at `/app/config.yaml`.
+## Quick Start
 
-For example:
-
-```bash
-docker run -d \
-  --name=ical-filter-proxy \
-  -v config.yaml:/app/config.yaml \
-  -p 8080:8080/tcp \
-  --restart unless-stopped \
-  yungwood/ical-filter-proxy:latest
-```
-
-You can also adapt the included [`docker-compose.yaml`](./docker-compose.yaml) example.
-
-### Kubernetes
-
-You can deploy iCal Filter Proxy using the helm chart from [`yungwood/helm-charts/ical-filter-proxy`](https://github.com/yungwood/helm-charts/blob/main/charts/ical-filter-proxy).
-
-```bash
-helm repo add yungwood https://yungwood.github.io/helm-charts/
-helm install your-release yungwood/ical-filter-proxy
-```
-
-The source chart lives in [`chart/`](./chart). Chart changes are linted with
-[`chart-testing`](https://github.com/helm/chart-testing) actions.
-Tagged releases publish the raw chart source to [`yungwood/helm-charts`](https://github.com/yungwood/helm-charts)
-by opening a PR with the chart `version` and `appVersion` set from the tag.
-
-### Build from source
-
-You can also build the app and container from source.
-
-```bash
-# clone this repo
-git clone git@github.com:yungwood/ical-filter-proxy.git
-cd ical-filter-proxy
-
-# build container image
-docker build -t ical-filter-proxy:latest .
-```
-
-### Nix Flake
-
-If you use Nix, you can build and run the application using the provided flake:
-
-```bash
-cd ical-filter-proxy
-
-# build the application
-nix build
-
-# run the application
-nix run . -- --help
-
-# enter development shell with Go toolchain
-nix develop
-
-# run directly from GitHub
-nix run github:yungwood/ical-filter-proxy -- --help
-
-# run a tagged release
-nix run github:yungwood/ical-filter-proxy/0.3.0 -- --help
-```
-
-Nix builds embed the flake source revision in `ical-filter-proxy -version` rather than the tag name. If you run a tagged release such as `0.3.0`, the tag still controls the source being built, while the binary reports the exact commit revision for traceability.
-
-## Configuration
-
-Calendars and filters are defined in a yaml config file. By default this is `config.yaml` (use the `-config` switch to change this). The configuration must define at least one calendar for ical-filter-proxy to start.
-
-Example configuration (with comments):
-
-```yaml
-calendars:
-  # basic example
-  - name: example # used as slug in URL - e.g. ical-filter-proxy:8080/calendars/example/feed?token=changeme
-    publish_name: "My Calendar" # the published name of the calendar - uses upstream value if this line is skipped
-    token: "changeme" # optional - token must be used to pull iCal feed if defined
-    public: false # optional - must be true if token is blank or not defined
-    feed_url: "https://my-upstream-calendar.url/feed.ics" # URL for the upstream iCal feed
-    user_agent: "ical-filter-proxy" # optional - override User-Agent sent to this upstream feed
-    filters: # optional - if no filters defined the upstream calendar is proxied as parsed
-      - description: "Remove an event based on a regex"
-        remove: true # events matching this filter will be removed
-        match: # optional - all events will match if no rules defined
-          summary: # match on event summary (title)
-            contains: "deleteme" # must contain 'deleteme'
-      - description: "Remove descriptions from all events"
-        transform: # optional
-          description: # modify event description
-            remove: true # replace with a blank string
-
-  # example: removing noise from an Office 365 calendar
-  - name: outlook
-    token: "changeme"
-    feed_url: "https://outlook.office365.com/owa/calendar/.../reachcalendar.ics"
-    filters:
-      - description: "Remove canceled events" # canceled events remain with a 'Canceled:' prefix until removed
-        remove: true
-        match:
-          summary:
-            prefix: "Canceled: "
-      - description: "Remove events without descriptions"
-        remove: true
-        match:
-          description:
-            empty: true
-      - description: "Remove public holidays"
-        remove: true
-        match:
-          summary:
-            regex: ".*[Pp]ublic [Hh]oliday.*"
-
-  # example: cleaning up an OpsGenie feed
-  - name: opsgenie
-    token: "changeme"
-    feed_url: "https://company.app.opsgenie.com/webapi/webcal/getRecentSchedule?webcalToken=..."
-    filters:
-      - description: "Keep oncall schedule events and fix names"
-        match:
-          summary:
-            contains: "schedule: oncall"
-        stop: true # stops processing any more filters
-        transform:
-          summary:
-            replace: "On-Call" # replace the event summary (title)
-      - description: "Remove all other events"
-        remove: true
-```
-
-## Endpoints
-
-The service exposes a simple HTTP API for accessing the proxied calendars.
-The base URL is `http://<host>:<port>/calendars/<calendar_name>/feed`. The public listener defaults to `:8080` and can be changed with `-address`, for example `-address 127.0.0.1:8080`.
-
-Liveness and readiness endpoints are exposed at `/liveness` and `/readiness`. By default these are served on the main listener with the calendar endpoints. Set `-management-address`, such as `-management-address 127.0.0.1:9090`, to serve liveness, readiness, and metrics on a separate management listener instead.
-
-Prometheus metrics can be enabled with `-metrics`, which exposes `/metrics`. Metrics use aggregate labels by default; `-metrics-calendar-labels` additionally exposes per-calendar metrics labelled by calendar name. If metrics are enabled without `-management-address`, the metrics endpoint is exposed on the main listener and the service logs a warning.
-
-### Environment variables
-
-Most runtime flags can also be set with environment variables. CLI flags take precedence over environment variables.
-
-| Flag                       | Environment variable                        | Description                                             |
-| -------------------------- | ------------------------------------------- | ------------------------------------------------------- |
-| `-config`                  | `ICAL_FILTER_PROXY_CONFIG`                  | Path to the YAML config file.                           |
-| `-address`                 | `ICAL_FILTER_PROXY_ADDRESS`                 | Address for the public calendar listener.               |
-| `-debug`                   | `ICAL_FILTER_PROXY_DEBUG`                   | Enable debug logging.                                   |
-| `-json`                    | `ICAL_FILTER_PROXY_JSON`                    | Emit logs as JSON.                                      |
-| `-validate`                | `ICAL_FILTER_PROXY_VALIDATE`                | Validate config and exit.                               |
-| `-metrics`                 | `ICAL_FILTER_PROXY_METRICS`                 | Enable Prometheus metrics.                              |
-| `-metrics-calendar-labels` | `ICAL_FILTER_PROXY_METRICS_CALENDAR_LABELS` | Enable per-calendar metric labels.                      |
-| `-management-address`      | `ICAL_FILTER_PROXY_MANAGEMENT_ADDRESS`      | Address for liveness, readiness, and metrics endpoints. |
-| `-trusted-proxy-cidr`      | `ICAL_FILTER_PROXY_TRUSTED_PROXY_CIDRS`     | Trusted reverse proxy CIDRs for forwarded addresses.    |
-
-`-version` is CLI-only.
-
-Debug logging includes calendar names, request paths, event summaries, and filter descriptions for debugging filter logic. Avoid enabling `-debug` in environments where logs are broadly accessible or retained longer than necessary.
-
-### Filters
-
-Calendar events are filtered using a similar concept to email filtering. A list of filters is defined for each calendar in the config.
-
-Each event parsed from `feed_url` is evaluated against the filters in sequence.
-
-- All `match` rules for a filter must be true to match an event
-- A filter with no `match` rules will _always_ match
-- When a match is found:
-  - if `remove` is `true` the event is discarded
-  - `transform` rules are applied to the event
-  - if `stop` is `true` no more filters are processed
-- If no match is found the event is retained by default
-
-#### Match conditions
-
-Each filter can specify match conditions against the following event properties:
-
-- `summary` (string value)
-- `location` (string value)
-- `description` (string value)
-- `url` (string value)
-
-These match conditions are available for a string value:
-
-- `empty` - if `true`, property must be absent or empty
-- `contains` - property must contain this value
-- `contains_any` - property must contain at least one value from this list
-- `contains_all` - property must contain every value from this list
-- `prefix` - property must start with this value
-- `suffix` - property must end with this value
-- `regex` - property must match the given regular expression. Invalid regular expressions are rejected when the configuration is loaded.
-
-#### Transformations
-
-Transformations can be applied to the following event properties:
-
-- `summary` - string value
-- `location` - string value
-- `description` - string value
-- `url` - string value
-
-The following transformations are available for strings:
-
-- `remove` - if `true` the property is set to a blank string. This takes precedence over all other transform options.
-- `replace` - the property is replaced with this value. This takes precedence over `trim_prefix`, `trim_suffix`, `replace_text`, `prefix`, and `suffix`.
-- `trim_prefix` - remove this value when the property starts with it
-- `trim_suffix` - remove this value when the property ends with it
-- `replace_text` - replace literal text within the property. `old` is required, `new` is the replacement, and `all: true` replaces every occurrence instead of only the first.
-- `prefix` - this value is added before the existing property value
-- `suffix` - this value is added after the existing property value
-
-When `remove` and `replace` are not set, string transforms are applied in this order: `trim_prefix`, `trim_suffix`, `replace_text`, `prefix`, `suffix`.
-
-### Secrets
-
-You can load `feed_url` and `token` values from files by specifying the `feed_url_file` and `token_file` fields in the calendar configuration. When these fields are set, any values directly provided for `feed_url` or `token` are ignored.
-
-You can also reference environment variables from `feed_url` and `token` by setting the field value to an exact `${ENV_NAME}` reference. Missing or empty environment variables fail config loading. Partial string expansion is not supported, and `feed_url_file` / `token_file` still take precedence.
-
-```yaml
-calendars:
-  - name: private
-    token: "${CALENDAR_TOKEN}"
-    feed_url: "${CALENDAR_FEED_URL}"
-```
-
-For example:
+Create a config file:
 
 ```yaml
 calendars:
   - name: example
-    token_file: "/run/secrets/outlook-token"
-    feed_url_file: "/run/secrets/outlook-feed"
+    publish_name: "Example Calendar"
+    public: true
+    feed_url: "https://example.com/calendar.ics"
+    filters:
+      - description: "Remove cancelled events"
+        remove: true
+        match:
+          summary:
+            prefix: "Canceled: "
+```
+
+Run with Docker:
+
+```bash
+docker run --rm \
+  -v ./config.yaml:/app/config.yaml:ro \
+  -p 8080:8080 \
+  yungwood/ical-filter-proxy:latest
+```
+
+Subscribe to:
+
+```text
+http://localhost:8080/calendars/example/feed
+```
+
+See the [Quick Start](https://yungwood.github.io/ical-filter-proxy/getting-started/)
+and [Docker guide](https://yungwood.github.io/ical-filter-proxy/installation/docker/)
+for more complete examples.
+
+## Installation
+
+Docker images are published to Docker Hub:
+
+```text
+yungwood/ical-filter-proxy
+```
+
+Helm chart:
+
+```bash
+helm repo add yungwood https://yungwood.github.io/helm-charts/
+helm install ical-filter-proxy yungwood/ical-filter-proxy
+```
+
+Nix:
+
+```bash
+nix run github:yungwood/ical-filter-proxy -- --help
+```
+
+See the documentation for [Docker](https://yungwood.github.io/ical-filter-proxy/installation/docker/),
+[Helm](https://yungwood.github.io/ical-filter-proxy/installation/kubernetes-helm/),
+[Nix](https://yungwood.github.io/ical-filter-proxy/installation/nix/), and
+[source builds](https://yungwood.github.io/ical-filter-proxy/installation/source/).
+
+## Development
+
+Run tests:
+
+```bash
+go test ./...
+```
+
+Run linting:
+
+```bash
+go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2 run --config .golangci.yml ./...
+```
+
+Build the docs:
+
+```bash
+cd docs
+npm ci
+npm run build
 ```
 
 ## Roadmap to 1.0
-
-There are a few more features I would like to add before I call the project "stable" and release version 1.0.
 
 - [ ] Time based event conditions
 - [ ] Caching
@@ -286,7 +139,7 @@ There are a few more features I would like to add before I call the project "sta
 
 ## Contributing
 
-If you have a suggestion that would make this better, please feel free to open an issue or send a pull request.
+Issues and pull requests are welcome.
 
 ## License
 
