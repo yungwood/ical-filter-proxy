@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">iCal Filter Proxy</title>
+  <desc id="desc">Open Graph preview image for iCal Filter Proxy documentation.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#e2e8f0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#background)"/>
+  <rect x="42" y="42" width="1116" height="546" rx="28" fill="#ffffff" opacity="0.78"/>
+  <image href="logo.svg" x="100" y="105" width="420" height="420"/>
+  <text x="560" y="255" fill="#111827" font-family="Inter, Arial, sans-serif" font-size="68" font-weight="700">
+    iCal Filter Proxy
+  </text>
+  <text x="564" y="325" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="500">
+    Clean up noisy calendar feeds
+  </text>
+  <text x="564" y="380" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="26">
+    Filter, transform, and publish iCalendar feeds.
+  </text>
+</svg>

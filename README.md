@@ -2,7 +2,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/yungwood/ical-filter-proxy">
-    <img src="docs/static/img/logo.png" alt="Logo" width="120" height="120">
+    <img src="docs/static/img/logo.svg" alt="Logo" width="120" height="120">
   </a>
 
   <h3 align="center">iCal Filter Proxy</h3>

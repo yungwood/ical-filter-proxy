@@ -11,8 +11,8 @@
 }
 
 .heroLogo {
-  height: 160px;
-  width: 160px;
+  height: 200px;
+  width: 200px;
   margin-bottom: 1rem;
 }
 
@@ -32,8 +32,8 @@
   }
 
   .heroLogo {
-    height: 120px;
-    width: 120px;
+    height: 150px;
+    width: 150px;
   }
 
   .heroBanner :global(.hero__title) {
