@@ -26,7 +26,7 @@ Common fields:
 | `token` | Required unless `public: true` or `token_file` is set | Token required to access the published feed. |
 | `token_file` | No | File containing the access token. Takes precedence over `token`. |
 | `feed_url_file` | No | File containing the upstream feed URL. Takes precedence over `feed_url`. |
-| `user_agent` | No | Overrides the User-Agent header sent to this upstream feed. |
+| `user_agent` | No | Overrides the User-Agent header sent to this upstream feed. Defaults to `ical-filter-proxy/<version>`. |
 | `filters` | No | Ordered filter and transform rules applied to events. |
 
 Published feeds are exposed at:
@@ -35,3 +35,6 @@ Published feeds are exposed at:
 /calendars/<name>/feed
 /calendars/<name>/feed?token=<token>
 ```
+
+Use `user_agent` when an upstream provider requires a specific client string or
+blocks generic calendar fetchers. Leading and trailing whitespace is ignored.
