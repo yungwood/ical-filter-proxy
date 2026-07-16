@@ -79,6 +79,7 @@ jobs:
         shell: bash
 
       - name: Create pull request
+        id: create-pull-request
         uses: peter-evans/create-pull-request@v8
         with:
           path: helm-charts
@@ -88,3 +89,9 @@ jobs:
           commit-message: Update ical-filter-proxy chart to ${{ github.ref_name }}
           title: Update ical-filter-proxy chart to ${{ github.ref_name }}
           body: ${{ steps.pr-metadata.outputs.body }}
+
+      - name: Enable pull request auto-merge
+        if: steps.create-pull-request.outputs.pull-request-number != ''
+        run: gh pr merge --auto --squash "${{ steps.create-pull-request.outputs.pull-request-url }}"
+        env:
+          GH_TOKEN: ${{ secrets.HELM_CHARTS_TOKEN }}
