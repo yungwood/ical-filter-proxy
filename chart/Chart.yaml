@@ -2,8 +2,21 @@ apiVersion: v2
 name: ical-filter-proxy
 description: iCal proxy with support for user-defined filtering rules
 type: application
+home: https://yungwood.github.io/ical-filter-proxy/
+icon: https://raw.githubusercontent.com/yungwood/ical-filter-proxy/main/docs/static/img/logo.svg
+sources:
+  - https://github.com/yungwood/ical-filter-proxy
+keywords:
+  - calendar
+  - ical
+  - icalendar
+  - caldav
+  - proxy
+  - filtering
+  - prometheus
 # Release publishing overwrites version and appVersion for tagged builds.
 version: 0.0.0
 appVersion: "unreleased"
 maintainers:
   - name: yungwood
+    url: https://github.com/yungwood
