@@ -23,7 +23,7 @@ WORKDIR /app
 COPY --from=base /etc/passwd /etc/group /etc/shadow /etc/
 COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go/bin/ical-filter-proxy /usr/bin/ical-filter-proxy
-USER app
+USER 1000:1000
 EXPOSE 8080/tcp
 ENTRYPOINT ["/usr/bin/ical-filter-proxy"]
 CMD ["-config", "/app/config.yaml"]
