@@ -6,6 +6,9 @@ on:
       - "*"
     paths:
       - ".github/workflows/nix.yml"
+      - "scripts/update-vendor-hash"
+      - "scripts/test_update_vendor_hash.py"
+      - "renovate.json"
       - "flake.lock"
       - "flake.nix"
       - "go.mod"
@@ -15,6 +18,9 @@ on:
   pull_request:
     paths:
       - ".github/workflows/nix.yml"
+      - "scripts/update-vendor-hash"
+      - "scripts/test_update_vendor_hash.py"
+      - "renovate.json"
       - "flake.lock"
       - "flake.nix"
       - "go.mod"
@@ -39,5 +45,20 @@ jobs:
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
+      - name: Test vendor hash updater
+        run: |
+          python3 scripts/test_update_vendor_hash.py
+          ./scripts/update-vendor-hash
+          git diff --exit-code -- flake.nix flake.lock
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          path = Path("flake.nix")
+          path.write_text(re.sub(r'vendorHash = "[^"]+"',
+                                'vendorHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="',
+                                path.read_text()))
+          PY
+          ./scripts/update-vendor-hash
+          git diff --exit-code -- flake.nix flake.lock
       - name: Check flake
         run: nix flake check --print-build-logs
