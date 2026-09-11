@@ -38,6 +38,15 @@
       ]
     },
     {
+      "description": "Refresh Nix vendorHash after Go or flake input updates",
+      "matchManagers": ["gomod", "nix"],
+      "postUpgradeTasks": {
+        "commands": ["./scripts/update-vendor-hash"],
+        "fileFilters": ["flake.nix"],
+        "executionMode": "branch"
+      }
+    },
+    {
       "description": "Group docs npm patch and minor updates",
       "matchManagers": [
         "npm"

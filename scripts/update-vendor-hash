@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+"""Refresh the locked default package's vendorHash; invoke without arguments."""
+import json
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+
+
+def extract_hash(log):
+    matches = re.findall(
+        r"hash mismatch in fixed-output derivation '[^'\n]*/[^/'\n]*"
+        r"ical-filter-proxy-[^/'\n]*-go-modules\.drv':\s*"
+        r"specified:\s*sha256-[A-Za-z0-9+/]{43}=\s*"
+        r"got:\s*(sha256-[A-Za-z0-9+/]{43}=)",
+        log,
+    )
+    if len(matches) != 1:
+        raise ValueError("expected exactly one vendor derivation hash mismatch")
+    return matches[0]
+
+
+HASH = re.compile(r'(vendorHash\s*=\s*")(sha256-[A-Za-z0-9+/]{43}=)("\s*;)')
+FAKE_HASH = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+
+
+def update(root):
+    flake = root / "flake.nix"
+    original = flake.read_text()
+    if len(HASH.findall(original)) != 1:
+        raise ValueError("expected exactly one literal sha256 vendorHash")
+    if not (root / "flake.lock").is_file():
+        raise ValueError("flake.lock is required")
+    # Never leave a fake hash in the worktree, even after interruption/failure.
+    with tempfile.TemporaryDirectory(prefix="ical-vendor-") as directory:
+        source = Path(directory) / "source"
+        shutil.copytree(root, source, ignore=shutil.ignore_patterns(
+            ".git", "__pycache__", "result", "result-*", ".venv", "node_modules"))
+        scratch = source / "flake.nix"
+        scratch.write_text(HASH.sub(lambda m: m[1] + FAKE_HASH + m[3], original))
+        expression = (
+            "let f = builtins.getFlake " + json.dumps(str(source)) + "; "
+            "in f.packages.${builtins.currentSystem}.default.goModules"
+        )
+        command = ["nix", "--extra-experimental-features", "nix-command flakes",
+                   "build", "--impure", "--no-link", "--no-write-lock-file",
+                   "--print-build-logs", "--expr", expression]
+        result = subprocess.run(command, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, text=True)
+        if result.returncode == 0:
+            raise RuntimeError("fake vendor hash unexpectedly built successfully")
+        try:
+            digest = extract_hash(result.stdout)
+        except ValueError:
+            print(result.stdout, file=sys.stderr)
+            raise
+        updated = HASH.sub(lambda m: m[1] + digest + m[3], original)
+        scratch.write_text(updated)
+        result = subprocess.run(command, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, text=True)
+        if result.returncode:
+            print(result.stdout, file=sys.stderr)
+            raise RuntimeError("vendor derivation verification failed; flake.nix unchanged")
+    if flake.read_text() != original:
+        raise RuntimeError("flake.nix changed while updater was running")
+    if updated != original:
+        flake.write_text(updated)
+        print("Updated vendorHash to " + digest)
+    else:
+        print("vendorHash is already current")
+
+
+if __name__ == "__main__":
+    try:
+        if len(sys.argv) != 1:
+            raise ValueError("invoke without arguments")
+        update(Path(__file__).resolve().parent.parent)
+    except (OSError, ValueError, RuntimeError) as error:
+        sys.exit(str(error))
