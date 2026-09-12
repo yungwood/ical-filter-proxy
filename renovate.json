@@ -38,6 +38,29 @@
       ]
     },
     {
+      "description": "Group Go module patch and minor updates",
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "Go minor and patch dependencies",
+      "groupSlug": "go-minor-patch"
+    },
+    {
+      "description": "Group Go module major updates",
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "groupName": "Go major dependencies",
+      "groupSlug": "go-major"
+    },
+    {
       "description": "Refresh Nix vendorHash after Go or flake input updates",
       "matchManagers": ["gomod", "nix"],
       "postUpgradeTasks": {
