@@ -3,7 +3,7 @@ module github.com/yungwood/ical-filter-proxy
 go 1.23.0
 
 require (
-	github.com/arran4/golang-ical v0.3.5
+	github.com/arran4/golang-ical v0.3.6
 	github.com/prometheus/client_golang v1.23.2
 	gopkg.in/yaml.v3 v3.0.1
 )
