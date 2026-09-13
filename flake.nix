@@ -2,7 +2,7 @@
   description = "iCal Filter Proxy - A simple service for proxying multiple iCal feeds while applying user-defined filtering rules";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -18,7 +18,7 @@
     packageRevision = self.shortRev or "unknown";
 
     mkIcalFilterProxy = pkgs:
-      pkgs.buildGoModule {
+      pkgs.buildGo126Module {
         pname = "ical-filter-proxy";
         version = packageVersion;
 
@@ -77,7 +77,7 @@
 
       devShells.default = pkgs.mkShell {
         buildInputs = with pkgs; [
-          go
+          go_1_26
           gopls
           gotools
           go-tools
