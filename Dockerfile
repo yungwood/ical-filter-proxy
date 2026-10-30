@@ -1,5 +1,5 @@
 # Stage 1: build golang binary
-FROM golang:1.27-alpine as builder
+FROM golang:1.27-alpine AS builder
 ARG VERSION="unknown"
 ARG REVISION="unknown"
 WORKDIR /go/src/app
@@ -12,7 +12,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
   CGO_ENABLED=0 go install -ldflags "-extldflags '-static' -X 'main.version=${VERSION}' -X 'main.commit=${REVISION}'"
 
 # Stage 2: setup alpine base for building scratch image
-FROM alpine:3.24.1 as base
+FROM alpine:3.24.3 AS base
 RUN adduser -s /bin/true -u 1000 -D -h /app app && \
   sed -i -r "/^(app|root)/!d" /etc/group /etc/passwd && \
   sed -i -r 's#^(.*):[^:]*$#\1:/sbin/nologin#' /etc/passwd
